@@ -1,0 +1,14 @@
+# Python virtual environments
+venv/
+venv_test/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Benchmark results
+results/
+
+# VSCode
+.vscode/
+*.log
