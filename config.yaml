@@ -1,0 +1,5 @@
+model_name: "meta-llama/Llama-2-7b-hf"
+device: "cuda"
+num_examples_one_shot: 2
+num_examples_two_shot: 2
+closeness_model: "all-MiniLM-L6-v2"
