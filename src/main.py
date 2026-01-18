@@ -1,7 +1,7 @@
-from src.utils import load_csv, save_csv
-from src.llm_models import HuggingFaceMultimodalLLM
-from src.benchmark import BenchmarkRunner
-from src.evaluator import ClosenessEvaluator, strict_match
+from utils import load_csv, save_csv
+from llm_models import HuggingFaceMultimodalLLM
+from benchmark import BenchmarkRunner
+from evaluator import ClosenessEvaluator, strict_match
 
 if __name__ == "__main__":
     df = load_csv("data/dataset.csv")
