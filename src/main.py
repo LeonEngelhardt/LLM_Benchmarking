@@ -1,49 +1,67 @@
-from utils import load_csv, save_csv
-from llm_models import HuggingFaceMultimodalLLM
-from benchmark import BenchmarkRunner
-from evaluator import ClosenessEvaluator, strict_match
+import os
+import torch
+from dotenv import load_dotenv
+from src.utils import load_csv, save_csv
+from src.llm_models import HuggingFaceLLM
+from src.benchmark import BenchmarkRunner
+from src.evaluator import ClosenessEvaluator, strict_match
 
-if __name__ == "__main__":
-    df = load_csv("data/dataset.csv")
-    closeness_eval = ClosenessEvaluator()
+load_dotenv()
+hf_token = os.environ.get("HF_TOKEN")
 
-    # LLaMa-2
-    llama_model = HuggingFaceMultimodalLLM("meta-llama/Llama-2-7b-chat-hf")
-    llama_model.load_model()
+df_all = load_csv("data/dataset.csv")
+closeness_eval = ClosenessEvaluator()
 
-    runner_llama = BenchmarkRunner(
-        df,
-        llama_model,
+models_to_test = [
+    {"name": "gpt2", "vision": False},
+    {"name": "Salesforce/blip-image-captioning-base", "vision": True},
+    #{"name": "meta-llama/Llama-2-7b-chat-hf", "vision": False},
+    #{"name": "deepseek-ai/deepseek-vl-7b-chat", "vision": True},
+]
+
+for model_info in models_to_test:
+    model_name = model_info["name"]
+    vision_enabled = model_info["vision"]
+
+    print(f"\n=== Benchmarking {model_name} (Vision: {vision_enabled}) ===")
+
+    if vision_enabled:
+        df = df_all[df_all["image_path"].notna() & (df_all["image_path"].str.strip() != "")].reset_index(drop=True)
+        print(f"[INFO] Vision-Model → {len(df)} Picture-Questions")
+    else:
+        df = df_all[df_all["image_path"].isna() | (df_all["image_path"].str.strip() == "")].reset_index(drop=True)
+        print(f"[INFO] Text-Model → {len(df)} Text-Questions")
+
+    if len(df) == 0:
+        print("[WARNING] Skipping this model, because no suited questions are loaded.")
+        continue
+
+    llm = HuggingFaceLLM(
+        model_name=model_name,
+        hf_token=hf_token,
+        device="cuda" if torch.cuda.is_available() else "cpu"
+    )
+    llm.load_model()
+
+    runner = BenchmarkRunner(
+        df=df,
+        llm=llm,
         evaluator=strict_match,
-        closeness_evaluator=closeness_eval
+        closeness_evaluator=closeness_eval,
+        vision=vision_enabled
     )
 
-    llama_one_shot = runner_llama.run_one_shot()
-    save_csv(llama_one_shot, "results/llama_one_shot_results.csv")
+    # One-Shot
+    print(f"--- {model_name} One-Shot ---")
+    one_shot_df = runner.run_one_shot()
+    save_csv(one_shot_df, f"results/{model_name.replace('/', '_')}_one_shot.csv")
 
-    llama_two_shot = runner_llama.run_two_shot()
-    save_csv(llama_two_shot, "results/llama_two_shot_results.csv")
+    # Two-Shot
+    print(f"--- {model_name} Two-Shot ---")
+    two_shot_df = runner.run_two_shot()
+    save_csv(two_shot_df, f"results/{model_name.replace('/', '_')}_two_shot.csv")
 
-    llama_lfe = runner_llama.run_learning_from_experience()
-    save_csv(llama_lfe, "results/llama_learning_from_experience_results.csv")
-
-    # MPT/MosaicML
-    print("Starte Benchmark für MPT/MosaicML...")
-    mpt_model = HuggingFaceMultimodalLLM("mosaicml/mpt-7b-instruct")
-    mpt_model.load_model()
-
-    runner_mpt = BenchmarkRunner(
-        df,
-        mpt_model,
-        evaluator=strict_match,
-        closeness_evaluator=closeness_eval
-    )
-
-    mpt_one_shot = runner_mpt.run_one_shot()
-    save_csv(mpt_one_shot, "results/mpt_one_shot_results.csv")
-
-    mpt_two_shot = runner_mpt.run_two_shot()
-    save_csv(mpt_two_shot, "results/mpt_two_shot_results.csv")
-
-    mpt_lfe = runner_mpt.run_learning_from_experience()
-    save_csv(mpt_lfe, "results/mpt_learning_from_experience_results.csv")
+    # Learning-from-Experience
+    print(f"--- {model_name} Learning-from-Experience ---")
+    lfe_df = runner.run_learning_from_experience()
+    save_csv(lfe_df, f"results/{model_name.replace('/', '_')}_lfe.csv")

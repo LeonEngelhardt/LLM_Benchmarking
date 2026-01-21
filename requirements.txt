@@ -1,5 +1,12 @@
-pandas
+sentence-transformers
 torch
 transformers
+huggingface_hub
+accelerate
+python-dotenv
+pandas
 tqdm
-sentence-transformers
+pillow
+requests
+sentencepiece
+bitsandbytes
