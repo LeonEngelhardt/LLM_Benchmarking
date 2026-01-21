@@ -1,4 +1,4 @@
-import torch
+"""import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from transformers import BlipProcessor, BlipForConditionalGeneration
 from PIL import Image
@@ -19,7 +19,7 @@ class HuggingFaceLLM:
             self.is_vision = True
             self.processor = BlipProcessor.from_pretrained(self.model_name)
             self.model = BlipForConditionalGeneration.from_pretrained(self.model_name).to(self.device)
-            print("[INFO] Vision-Text Modell (BLIP) geladen.")
+            print("[INFO] Vision-Text Modell (BLIP) loaded.")
         else:
             self.is_vision = False
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, token=self.hf_token)
@@ -28,12 +28,12 @@ class HuggingFaceLLM:
                 token=self.hf_token,
                 torch_dtype=torch.float16 if self.device == "cuda" else torch.float32
             ).to(self.device)
-            print("[INFO] Text LLM geladen.")
+            print("[INFO] Text LLM loaded.")
 
     def generate(self, prompt, image_path=None, max_length=128):
         if self.is_vision:
             if image_path is None:
-                raise ValueError("BLIP benötigt immer ein Bild (image_path darf nicht None sein).")
+                raise ValueError("BLIP needs an image (image_path must not be None).")
 
             image = Image.open(image_path).convert("RGB")
             inputs = self.processor(images=image, text=prompt, return_tensors="pt").to(self.device)
@@ -51,4 +51,4 @@ class HuggingFaceLLM:
             inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
             with torch.no_grad():
                 output_ids = self.model.generate(**inputs, max_new_tokens=max_length)
-            return self.tokenizer.decode(output_ids[0], skip_special_tokens=True)
+            return self.tokenizer.decode(output_ids[0], skip_special_tokens=True)"""
