@@ -1,3 +1,4 @@
+# local --> can be deleted
 import torch
 from PIL import Image
 from transformers import BlipProcessor, BlipForConditionalGeneration

@@ -10,3 +10,7 @@ pillow
 requests
 sentencepiece
 bitsandbytes
+openai
+anthropic
+openrouter
+qwen
