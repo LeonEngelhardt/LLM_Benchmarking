@@ -1,5 +1,15 @@
 def build_prompt(target_row: dict, example_rows: list[dict] = None, mode: str = "one_shot", vision: bool = False) -> str:
-    prompt = ""
+    category = target_row.get('raw_subject', 'General Knowledge')
+
+    instruction = (
+        f"You are an expert in {category}. \n"
+        "Solve the following question. You may think step-by-step to derive the answer.\n"
+        "You must end your response with the exact phrase:\n"
+        "Answer: [The Answer Text]\n"
+        "Do not write anything after this line."
+    )
+
+    prompt = instruction + "\n\n"
 
     if example_rows:
         prompt += "Here are example questions with their answers and rationales.\n\n"
@@ -21,6 +31,8 @@ def build_prompt(target_row: dict, example_rows: list[dict] = None, mode: str = 
         prompt += f"Question: {target_row['question']}\n"
 
     elif mode == "zero_shot":
+        base_prompt = f"{instruction}\n\nQuestion: {target_row['question']}\n"
+        
         if vision:
             return (
                 f"Question: {target_row['question']}\n"

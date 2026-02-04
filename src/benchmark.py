@@ -20,6 +20,15 @@ class BenchmarkRunner:
         self.df_examples = df[df['is_added'].fillna(False) == True].reset_index(drop=True)
         self.df_originals = df[df['is_added'].fillna(False) == False].reset_index(drop=True)
 
+    def _extract_final_answer(self, text: str) -> str:
+        separator = "Answer:"
+        if separator in text:
+            answer = text.split(separator)[-1].strip()
+            if answer.endswith("."):
+                answer = answer[:-1]
+            return answer.strip()
+        return text.strip()
+
     def _evaluate_answer(self, pred, truth):
         is_correct = self.evaluator(pred, truth)
         closeness = None
@@ -54,18 +63,22 @@ class BenchmarkRunner:
                 print("******************************************************************")
 
                 if self.vision and image_path:
-                    answer = self.llm.generate(prompt, image_path=image_path)
+                    raw_answer = self.llm.generate(prompt, image_path=image_path)
                 else:
-                    answer = self.llm.generate(prompt)
+                    raw_answer = self.llm.generate(prompt)
 
-                if not answer:
-                    answer = "[No answer]"
-                is_correct, closeness = self._evaluate_answer(answer, row['answer'])
+                if not raw_answer:
+                    raw_answer = "[No answer]"
+                
+                clean_answer = self._extract_final_answer(raw_answer)
+
+                is_correct, closeness = self._evaluate_answer(clean_answer, row['answer'])
                 results.append({
                     "mode": "one_shot",
                     "question": row['question'],
                     "ground_truth": row['answer'],
-                    "llm_answer": answer,
+                    "llm_raw_output": raw_answer,
+                    "llm_answer": clean_answer,
                     "is_correct": is_correct,
                     "closeness_score": closeness
                 })
@@ -85,19 +98,22 @@ class BenchmarkRunner:
 
             image_path = self._get_image_path(row) if self.vision else None
             if self.vision and image_path:
-                answer = self.llm.generate(prompt, image_path=image_path)
+                raw_answer = self.llm.generate(prompt, image_path=image_path)
             else:
-                answer = self.llm.generate(prompt)
+                raw_answer = self.llm.generate(prompt)
 
-            if not answer:
-                answer = "[No answer]"
+            if not raw_answer:
+                raw_answer = "[No answer]"
 
-            is_correct, closeness = self._evaluate_answer(answer, row['answer'])
+            clean_answer = self._extract_final_answer(raw_answer)
+
+            is_correct, closeness = self._evaluate_answer(clean_answer, row['answer'])
             results.append({
                 "mode": "two_shot",
                 "question": row['question'],
                 "ground_truth": row['answer'],
-                "llm_answer": answer,
+                "llm_raw_output": raw_answer,
+                "llm_answer": clean_answer,
                 "is_correct": is_correct,
                 "closeness_score": closeness
             })
@@ -114,9 +130,11 @@ class BenchmarkRunner:
 
             current_prompt = build_prompt(row, [], mode="zero_shot", vision=self.vision)
             if not current_prompt or not current_prompt.strip():
+                # Ensure fallback also asks for Answer:
                 current_prompt = f"Question: {row['question']}\nAnswer:"
 
-            final_answer = None
+            final_raw_answer = None
+            final_clean_answer = None
             num_iterations = 0
             is_correct = False
             closeness = None
@@ -125,27 +143,31 @@ class BenchmarkRunner:
                 num_iterations += 1
 
                 if self.vision and image_path:
-                    answer = self.llm.generate(current_prompt, image_path=image_path)
+                    raw_answer = self.llm.generate(current_prompt, image_path=image_path)
                 else:
-                    answer = self.llm.generate(current_prompt)
+                    raw_answer = self.llm.generate(current_prompt)
 
-                if not answer:
-                    answer = "[No answer]"
+                if not raw_answer:
+                    raw_answer = "[No answer]"
+                
+                clean_answer = self._extract_final_answer(raw_answer)
 
-                is_correct, closeness = self._evaluate_answer(answer, row['answer'])
+                is_correct, closeness = self._evaluate_answer(clean_answer, row['answer'])
+
+                final_raw_answer = raw_answer
+                final_clean_answer = clean_answer
 
                 if is_correct:
-                    final_answer = answer
                     break
 
                 current_prompt += "\n\nYour answer was incorrect. Please try again."
-                final_answer = answer
 
             results.append({
                 "mode": "learning_from_experience",
                 "question": row['question'],
                 "ground_truth": row['answer'],
-                "llm_answer": final_answer,
+                "llm_raw_output": final_raw_answer,
+                "llm_answer": final_clean_answer,
                 "is_correct": is_correct,
                 "num_iterations": num_iterations,
                 "closeness_score": closeness
