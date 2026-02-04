@@ -11,8 +11,7 @@ class LLMClosenessEvaluator:
 
     def score(self, pred: str, truth: str) -> float:
         prompt = f"""
-How would you rank the similarity between the following two answers based on a scale from 0 to 10
-(0 having no similarity and 10 being equal)?
+How would you rank the similarity between the following two answers based on a scale from 0 to 10?
 
 Answer 1:
 {pred}
@@ -20,7 +19,12 @@ Answer 1:
 Answer 2:
 {truth}
 
-Only return a single number between 0 and 10.
+Scoring Criteria:
+        - 10: The prediction is factually identical to the ground truth.
+        - 0: The prediction is completely wrong or irrelevant.
+        - Use intermediate numbers for partially correct answers.
+
+        Output ONLY a single number between 0 and 10.
 """
 
         raw = self.llm.generate(prompt)
