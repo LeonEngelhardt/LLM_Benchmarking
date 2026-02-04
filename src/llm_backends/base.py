@@ -1,3 +1,5 @@
+# api version:
+"""
 from abc import ABC, abstractmethod
 
 class BaseLLM(ABC):
@@ -9,10 +11,10 @@ class BaseLLM(ABC):
 
     @abstractmethod
     def generate(self, prompt, image_path=None):
-        pass
+        pass"""
 
 
-"""class BaseLLM:
+class BaseLLM:
     def __init__(self, model_name, device, hf_token=None):
         self.model_name = model_name
         self.device = device
@@ -22,4 +24,4 @@ class BaseLLM(ABC):
         raise NotImplementedError
 
     def generate(self, prompt: str, image_path=None):
-        raise NotImplementedError"""
+        raise NotImplementedError

@@ -1,4 +1,5 @@
-from .openai import OpenAIBackend
+# api version:
+"""from .openai import OpenAIBackend
 from .anthropic import AnthropicBackend
 from .openrouter import OpenRouterBackend
 from .qwen import QwenBackend
@@ -25,10 +26,10 @@ def get_llm(model_name, vision=False, verbose=False):
     if model_name in ["qwen/qwen3-235b", "qwen/qwen3-32b"]:
         return QwenBackend(model_name, vision=vision, verbose=verbose)
 
-    raise ValueError(f"Unsupported model: {model_name}")
+    raise ValueError(f"Unsupported model: {model_name}")"""
 
 
-"""from .hf_text import HFTextLLM
+from .hf_text import HFTextLLM
 from .blip import BlipLLM
 from .llama2 import Llama2LLM
 from .deepseek_vl import DeepSeekVLLM
@@ -47,4 +48,4 @@ def create_llm(model_name, vision, device, hf_token):
         if "llama" in name:
             return Llama2LLM(model_name, device, hf_token)
         else:
-            return HFTextLLM(model_name, device, hf_token)"""
+            return HFTextLLM(model_name, device, hf_token)

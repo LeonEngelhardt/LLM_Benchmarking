@@ -1,3 +1,4 @@
+"""
 import os
 from dotenv import load_dotenv
 from src.utils import load_csv, save_csv
@@ -62,18 +63,18 @@ for model_info in models_to_test:
     print(f"--- {model_name} Learning-from-Experience ---")
     lfe_df = runner.run_learning_from_experience()
     save_csv(lfe_df, f"results/{model_name.replace('/', '_')}_lfe.csv")
-
+"""
 
 # Code for local models...
-"""import os
+import os
 import torch
 from dotenv import load_dotenv
 from src.utils import load_csv, save_csv
 from src.benchmark import BenchmarkRunner
 from src.evaluator import ClosenessEvaluator, strict_match, LLMClosenessEvaluator
-from src.llm_backends.qwen import QwenLLM
+#from src.llm_backends.qwen import QwenLLM
 from src.llm_backends.factory import create_llm
-from llm_backends.factory import get_llm
+#from llm_backends.factory import get_llm
 
 load_dotenv()
 hf_token = os.environ.get("HF_TOKEN")
@@ -81,16 +82,16 @@ df_all = load_csv("data/dataset.csv")
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
-if device == "cuda":
-    qwen_judge = QwenLLM(
-        model_name="Qwen/Qwen3-235B-A22B-Instruct-2507",
-        device=device,
-        hf_token=hf_token
-    )
-    qwen_judge.load()
-    closeness_eval = LLMClosenessEvaluator(qwen_judge)
-else:
-    closeness_eval = ClosenessEvaluator() # this evaluator is only here to be able to test the framework locally! -> QWEN will rate the answer from 0 to 10 when on a cluster
+#if device == "cuda":
+#    qwen_judge = QwenLLM(
+#        model_name="Qwen/Qwen3-235B-A22B-Instruct-2507",
+#        device=device,
+#        hf_token=hf_token
+#    )
+#    qwen_judge.load()
+#    closeness_eval = LLMClosenessEvaluator(qwen_judge)
+#else:
+closeness_eval = ClosenessEvaluator() # this evaluator is only here to be able to test the framework locally! -> QWEN will rate the answer from 0 to 10 when on a cluster
 
 models_to_test = [
     {"name": "gpt2", "vision": False},
@@ -142,4 +143,4 @@ for model_info in models_to_test:
 
     print(f"--- {model_name} Learning-from-Experience ---")
     lfe_df = runner.run_learning_from_experience()
-    save_csv(lfe_df, f"results/{model_name.replace('/', '_')}_lfe.csv")"""
+    save_csv(lfe_df, f"results/{model_name.replace('/', '_')}_lfe.csv")
