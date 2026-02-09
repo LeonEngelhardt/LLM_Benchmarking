@@ -32,27 +32,28 @@ else:
 # Models to benchmark
 models_to_test = [
     # Text-only
-    {"name": "gpt2", "vision": False},                                  # local HF
-    # {"name": "meta-llama/Llama-2-7b-chat-hf", "vision": False},       # local HF
-    # {"name": "mistral/mixtral-8x7b", "vision": False},                # OpenRouter
-    # {"name": "qwen/qwen3-235b", "vision": False},                     # OpenRouter
+    {"name": "gpt2", "vision": False},                                  # local HF --> only for testing
+    # {"name": "meta-llama/Llama-2-7b-chat-hf", "vision": False},       # HF local / HF inference
+    # {"name": "mistral/mixtral-8x7b", "vision": False},                # OpenRouter API
+    # {"name": "qwen/qwen3-235b", "vision": False},                     # OpenRouter API
     # {"name": "gpt-4o", "vision": False},                              # OpenAI --> can support vision if we use the right endpoint, otherwise only text
-    # {"name": "claude-3-opus", "vision": False},                       # Anthropic
+    # {"name": "claude-3-opus", "vision": False},                       # Anthropic API
     # {"name": "google/gemma-2-9b-it", "vision": False}                 # HF
-    # {"name": "google/gemma-2-27b-it", "vision": False}                # HF
+    # {"name": "google/gemma-2-27b-it", "vision": False}                # HF (needs strong gpu i.e. at least 48 GB of GPU advised --> keep it?)
     # {"name": "internlm/internlm2-7b-chat", "vision": False}           # HF
-    # {"name": "internlm/Intern-S1", "vision": False}                   # HF
 
     # Vision
-    {"name": "Salesforce/blip-image-captioning-base", "vision": True},  # local HF
-    # {"name": "qwen/qwen-vl", "vision": True},                         # OpenRouter
-    # {"name": "deepseek-r1", "vision": True},                          # OpenRouter
-    # {"name": "internvl/intern-s1", "vision": True},                   # HF / API
-    # {"name": "gemini-2.5-pro", "vision": True}
-    # {"name": "gemini-2.5-flash", "vision": True},
-    # {"name": "llava-hf/llava-1.6-mistral-7b-hf", "vision": True}
-    # {"name": "BAAI/Aquila-VL-2B-llava-qwen", "vision": True}
+    {"name": "Salesforce/blip-image-captioning-base", "vision": True},  # local HF --> only for testing
+    # {"name": "qwen/qwen-vl", "vision": True},                         # OpenRouter API
+    # {"name": "deepseek-r1", "vision": True},                          # OpenRouter API
+    # {"name": "internvl/intern-s1", "vision": True},                   # HF (/ API)
+    # {"name": "gemini-2.5-pro", "vision": True},                       # Gemini API
+    # {"name": "gemini-2.5-flash", "vision": True},                     # Gemini API --> but faster and cheaper than the pro version
+    # {"name": "llava-hf/llava-1.6-mistral-7b-hf", "vision": True}      # HF
+    # {"name": "BAAI/Aquila-VL-2B-llava-qwen", "vision": True}          # HF
+    # {"name": "internlm/Intern-S1", "vision": True}                    # HF
 ]
+
 
 # Benchmarking loop
 for model_info in models_to_test:
