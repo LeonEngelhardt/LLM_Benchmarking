@@ -1,9 +1,8 @@
 from sentence_transformers import SentenceTransformer, util
+import re
 
 def strict_match(pred: str, truth: str) -> bool:
     return pred.strip().lower() == truth.strip().lower()
-
-import re
 
 class LLMClosenessEvaluator:
     def __init__(self, llm):

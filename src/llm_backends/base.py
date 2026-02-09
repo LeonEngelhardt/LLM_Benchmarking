@@ -1,19 +1,21 @@
-# api version:
-"""
 from abc import ABC, abstractmethod
 
 class BaseLLM(ABC):
-
-    def __init__(self, model_name, vision=False, verbose=False):
+    def __init__(self, model_name: str, vision: bool = False):
         self.model_name = model_name
         self.vision = vision
-        self.verbose = verbose
+        self.loaded = False
 
     @abstractmethod
-    def generate(self, prompt, image_path=None):
-        pass"""
+    def load(self):
+        pass
+
+    @abstractmethod
+    def generate(self, prompt: str, image_path: str | None = None) -> str:
+        pass
 
 
+"""
 class BaseLLM:
     def __init__(self, model_name, device, hf_token=None):
         self.model_name = model_name
@@ -24,4 +26,4 @@ class BaseLLM:
         raise NotImplementedError
 
     def generate(self, prompt: str, image_path=None):
-        raise NotImplementedError
+        raise NotImplementedError"""

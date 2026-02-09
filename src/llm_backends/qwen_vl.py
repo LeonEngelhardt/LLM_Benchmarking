@@ -2,7 +2,7 @@ from transformers import AutoProcessor, AutoModelForVision2Seq
 from PIL import Image
 from .base import BaseLLM
 
-class DeepSeekVLLM(BaseLLM):
+class QwenVLLM(BaseLLM):
     def __init__(self, model_name, device):
         super().__init__(model_name, vision=True)
         self.device = device

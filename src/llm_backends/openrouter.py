@@ -1,22 +1,21 @@
-import os
-from openai import OpenAI
+import os, requests
 from .base import BaseLLM
 
-class OpenRouterBackend(BaseLLM):
+class OpenRouterLLM(BaseLLM):
+    def __init__(self, model_name):
+        super().__init__(model_name)
 
-    def __init__(self, model_name, vision=False, verbose=False):
-        super().__init__(model_name, vision, verbose)
-        self.client = OpenAI(
-            api_key=os.environ.get("OPENROUTER_API_KEY"),
-            base_url="https://openrouter.ai/api/v1"
-        )
+    def load(self): pass
 
     def generate(self, prompt, image_path=None):
-        try:
-            response = self.client.chat.completions.create(
-                model=self.model_name,
-                messages=[{"role":"user","content":prompt}],
-            )
-            return response.choices[0].message.content
-        except Exception as e:
-            return f"[OpenRouter Error] {str(e)}"
+        res = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
+            },
+            json={
+                "model": self.model_name,
+                "messages": [{"role": "user", "content": prompt}]
+            }
+        )
+        return res.json()["choices"][0]["message"]["content"]

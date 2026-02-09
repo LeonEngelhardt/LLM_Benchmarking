@@ -2,19 +2,17 @@ import os
 import anthropic
 from .base import BaseLLM
 
-class AnthropicBackend(BaseLLM):
-    def __init__(self, model_name, vision=False, verbose=False):
-        super().__init__(model_name, vision, verbose)
-        self.client = anthropic.Client(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+class AnthropicLLM(BaseLLM):
+    def __init__(self, model_name):
+        super().__init__(model_name)
+        self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+    def load(self): pass
 
     def generate(self, prompt, image_path=None):
-        try:
-            response = self.client.completions.create(
-                model=self.model_name,
-                prompt=prompt,
-                max_tokens=4000,
-                stop_sequences=["\n\n"]
-            )
-            return response.completion
-        except Exception as e:
-            return f"[Anthropic Error] {str(e)}"
+        msg = self.client.messages.create(
+            model=self.model_name,
+            max_tokens=512,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return msg.content[0].text

@@ -1,34 +1,46 @@
-# api version:
-"""from .openai import OpenAIBackend
-from .anthropic import AnthropicBackend
-from .openrouter import OpenRouterBackend
-from .qwen import QwenBackend
+from .hf_text import HFTextLLM
+from .blip import BlipLLM
+from .deepseek_vl import DeepSeekVLLM
+from .qwen_vl import QwenVLLM
 
-def get_llm(model_name, vision=False, verbose=False):
+from .openai import OpenAILLM
+from .openrouter import OpenRouterLLM
+from .anthropic import AnthropicLLM
+from .gemini import GeminiLLM
 
-    # OpenAI
-    if model_name in ["gpt-4o", "gpt-3.5-turbo", "o3-mini", "o4-mini"]:
-        return OpenAIBackend(model_name, vision=vision, verbose=verbose)
+def get_llm(model_name: str, vision: bool, device="cpu", hf_token=None):
+    name = model_name.lower()
 
-    # Anthropic
-    if model_name in ["claude-3.7-sonnet", "claude-3.5-haiku"]:
-        return AnthropicBackend(model_name, vision=vision, verbose=verbose)
+    # ---------- API MODELS ----------
+    #if name.startswith("gpt") or "openai" in name:
+    #    return OpenAILLM(model_name)
 
-    # OpenRouter models
-    openrouter_models = [
-        "deepseek-r1", "grok-3", "llama-3.3-70b", "llama-3.1-405b",
-        "llama-3.1-8b", "gemini-2.5-flash", "gemini-2.5-pro"
-    ]
-    if model_name in openrouter_models:
-        return OpenRouterBackend(model_name, vision=vision, verbose=verbose)
+    if "openrouter" in name:
+        return OpenRouterLLM(model_name)
 
-    # Qwen
-    if model_name in ["qwen/qwen3-235b", "qwen/qwen3-32b"]:
-        return QwenBackend(model_name, vision=vision, verbose=verbose)
+    if "claude" in name:
+        return AnthropicLLM(model_name)
 
-    raise ValueError(f"Unsupported model: {model_name}")"""
+    if "gemini" in name:
+        return GeminiLLM(model_name, vision=vision)
+
+    # ---------- LOCAL HF MODELS ----------
+    if model_name == "gpt2" or "llama" in name or "mistral" in name:
+        return HFTextLLM(model_name, device, hf_token)
+
+    if "blip" in name:
+        return BlipLLM(model_name, device)
+
+    if "deepseek" in name:
+        return DeepSeekVLLM(model_name, device)
+
+    if "qwen-vl" in name:
+        return QwenVLLM(model_name, device)
+
+    raise ValueError(f"Unknown model backend: {model_name}")
 
 
+"""
 from .hf_text import HFTextLLM
 from .blip import BlipLLM
 from .llama2 import Llama2LLM
@@ -49,3 +61,4 @@ def create_llm(model_name, vision, device, hf_token):
             return Llama2LLM(model_name, device, hf_token)
         else:
             return HFTextLLM(model_name, device, hf_token)
+            """

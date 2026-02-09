@@ -1,48 +1,91 @@
-"""
 import os
 from dotenv import load_dotenv
 from src.utils import load_csv, save_csv
 from src.benchmark import BenchmarkRunner
-from src.evaluator import ClosenessEvaluator, strict_match, LLMClosenessEvaluator
+from src.evaluator import (
+    strict_match,
+    ClosenessEvaluator,
+    LLMClosenessEvaluator
+)
 from src.llm_backends.factory import get_llm
 
+# Setup
 load_dotenv()
-
 df_all = load_csv("data/dataset.csv")
 
-qwen_api_key = os.environ.get("OPENROUTER_API_KEY") 
-if qwen_api_key:
-    closeness_eval = LLMClosenessEvaluator(
-        get_llm("qwen/qwen3-235b", vision=False, verbose=True)
-    )
-else:
-    closeness_eval = ClosenessEvaluator()  # fallback for local tests
+# Closeness Evaluator
+# Use Qwen as judge IF API key exists, otherwise fallback (e.g. for local testing)
+if os.getenv("OPENROUTER_API_KEY"):
+    print("[INFO] Using Qwen as LLM-based closeness evaluator")
 
+    qwen_judge = get_llm(
+        model_name="qwen/qwen3-235b",
+        vision=False,
+        #verbose=True
+    )
+    closeness_eval = LLMClosenessEvaluator(qwen_judge)
+else:
+    print("[INFO] Using string-based closeness evaluator (local fallback)")
+    closeness_eval = ClosenessEvaluator()
+
+
+# Models to benchmark
 models_to_test = [
-    #{"name": "gpt-4o", "vision": False},
-    {"name": "Salesforce/blip-image-captioning-base", "vision": True},
-    #{"name": "qwen/qwen3-235b", "vision": False},
-    #{"name": "deepseek-r1", "vision": True},
+    # -------- Text-only --------
+    {"name": "gpt2", "vision": False},                                  # local HF
+    # {"name": "meta-llama/Llama-2-7b-chat-hf", "vision": False},       # local HF
+    # {"name": "mistral/mixtral-8x7b", "vision": False},                # OpenRouter
+    # {"name": "qwen/qwen3-235b", "vision": False},                     # OpenRouter
+    # {"name": "gpt-4o", "vision": False},                              # OpenAI
+    # {"name": "claude-3-opus", "vision": False},                       # Anthropic
+    # {"name": "google/gemma-2-9b-it", "vision": False}                 # HF
+    # {"name": "google/gemma-2-27b-it", "vision": False}                # HF
+    # {"name": "internlm/internlm2-7b-chat", "vision": False}           # HF
+    # {"name": "internlm/Intern-S1", "vision": False}                   # HF
+
+    # -------- Vision --------
+    {"name": "Salesforce/blip-image-captioning-base", "vision": True},  # local HF
+    # {"name": "qwen/qwen-vl", "vision": True},                         # OpenRouter
+    # {"name": "deepseek-r1", "vision": True},                          # OpenRouter
+    # {"name": "internvl/intern-s1", "vision": True},                   # HF / API
+    # {"name": "gemini-2.5-pro", "vision": True}
+    # {"name": "gemini-2.5-flash", "vision": True},
+    # {"name": "llava-hf/llava-1.6-mistral-7b-hf", "vision": True}
+    # {"name": "BAAI/Aquila-VL-2B-llava-qwen", "vision": True}
 ]
 
+# Benchmarking loop
 for model_info in models_to_test:
     model_name = model_info["name"]
     vision_enabled = model_info["vision"]
 
-    print(f"\n=== Benchmarking {model_name} (Vision: {vision_enabled}) ===")
+    print(f"\n=== Benchmarking {model_name} (Vision={vision_enabled}) ===")
 
+    # Filter dataset
     if vision_enabled:
-        df = df_all[df_all["image_path"].notna() & (df_all["image_path"].str.strip() != "")].reset_index(drop=True)
-        print(f"[INFO] Vision-Model → {len(df)} Picture-Questions")
+        df = df_all[
+            df_all["image_path"].notna()
+            & (df_all["image_path"].str.strip() != "")
+        ].reset_index(drop=True)
+        print(f"[INFO] Vision model → {len(df)} image questions")
     else:
-        df = df_all[df_all["image_path"].isna() | (df_all["image_path"].str.strip() == "")].reset_index(drop=True)
-        print(f"[INFO] Text-Model → {len(df)} Text-Questions")
+        df = df_all[
+            df_all["image_path"].isna()
+            | (df_all["image_path"].str.strip() == "")
+        ].reset_index(drop=True)
+        print(f"[INFO] Text model → {len(df)} text questions")
 
-    if len(df) == 0:
-        print("[WARNING] Skipping this model, because no suited questions are loaded.")
+    if df.empty:
+        print("[WARNING] No suitable questions found → skipping model")
         continue
 
-    llm = get_llm(model_name, vision=vision_enabled, verbose=True)
+    # Load model via factory
+    llm = get_llm(
+        model_name=model_name,
+        vision=vision_enabled,
+        #verbose=True
+    )
+    llm.load()
 
     runner = BenchmarkRunner(
         df=df,
@@ -52,19 +95,36 @@ for model_info in models_to_test:
         vision=vision_enabled
     )
 
-    print(f"--- {model_name} One-Shot ---")
+    # One-Shot
+    print(f"--- {model_name} | One-Shot ---")
     one_shot_df = runner.run_one_shot()
-    save_csv(one_shot_df, f"results/{model_name.replace('/', '_')}_one_shot.csv")
+    save_csv(
+        one_shot_df,
+        f"results/{model_name.replace('/', '_')}_one_shot.csv"
+    )
 
-    print(f"--- {model_name} Two-Shot ---")
+    # Two-Shot
+    print(f"--- {model_name} | Two-Shot ---")
     two_shot_df = runner.run_two_shot()
-    save_csv(two_shot_df, f"results/{model_name.replace('/', '_')}_two_shot.csv")
+    save_csv(
+        two_shot_df,
+        f"results/{model_name.replace('/', '_')}_two_shot.csv"
+    )
 
-    print(f"--- {model_name} Learning-from-Experience ---")
-    lfe_df = runner.run_learning_from_experience()
-    save_csv(lfe_df, f"results/{model_name.replace('/', '_')}_lfe.csv")
+    # Learning-from-Experience
+    print(f"--- {model_name} | Learning-from-Experience ---")
+    lfe_df = runner.run_learning_from_experience(max_iterations=5)
+    save_csv(
+        lfe_df,
+        f"results/{model_name.replace('/', '_')}_lfe.csv"
+    )
+
+
+
+
+
+
 """
-
 # Code for local models...
 import os
 import torch
@@ -143,4 +203,4 @@ for model_info in models_to_test:
 
     print(f"--- {model_name} Learning-from-Experience ---")
     lfe_df = runner.run_learning_from_experience()
-    save_csv(lfe_df, f"results/{model_name.replace('/', '_')}_lfe.csv")
+    save_csv(lfe_df, f"results/{model_name.replace('/', '_')}_lfe.csv")"""
