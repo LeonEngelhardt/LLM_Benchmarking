@@ -13,7 +13,15 @@ class DeepSeekVLLM(BaseLLM):
         self.loaded = True
 
     def generate(self, prompt, image_path=None):
-        image = Image.open(image_path).convert("RGB")
+        if not image_path:
+            return self.model.generate(prompt)
+
+        try:
+            image = Image.open(image_path).convert("RGB")
+        except Exception as e:
+            return self.model.generate(prompt)
+
         inputs = self.processor(text=prompt, images=image, return_tensors="pt").to(self.device)
         output = self.model.generate(**inputs, max_new_tokens=128)
+
         return self.processor.decode(output[0], skip_special_tokens=True)
