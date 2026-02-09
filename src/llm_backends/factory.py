@@ -2,11 +2,11 @@ from .hf_text import HFTextLLM
 from .blip import BlipLLM
 from .deepseek_vl import DeepSeekVLLM
 from .qwen_vl import QwenVLLM
-
 from .openai import OpenAILLM
 from .openrouter import OpenRouterLLM
 from .anthropic import AnthropicLLM
 from .gemini import GeminiLLM
+from .intern_s1 import InternS1LLM
 
 def get_llm(model_name: str, vision: bool, device="cpu", hf_token=None):
     name = model_name.lower()
@@ -36,5 +36,8 @@ def get_llm(model_name: str, vision: bool, device="cpu", hf_token=None):
 
     if "qwen-vl" in name:
         return QwenVLLM(model_name, device)
+    
+    if "intern-s1" in model_name.lower():
+        return InternS1LLM(model_name, device)
 
     raise ValueError(f"Unknown model backend: {model_name}")
