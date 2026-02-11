@@ -16,20 +16,17 @@ The evaluation includes the following criterias:
 ```bash
 pip install -r requirements.txt
 
+
 ## Running the experiments
 
 Run all experiments:
-```bash
 python -m src.main
 
 Only One-Shot:
-```bash
 python -m src.main --experiment one-shot
 
 Only Two-Shot:
-```bash
 python -m src.main --experiment two-shot
 
 Only Learning from Experience:
-```bash
 python -m src.main --experiment lfe
