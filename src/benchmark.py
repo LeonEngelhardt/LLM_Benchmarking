@@ -13,7 +13,10 @@ class BenchmarkRunner:
         self.vision = vision
 
         if vision:
-            self.df_targets = df[df['image_path'].notna() & (df['image_path'].str.strip() != "")].reset_index(drop=True)
+            if self.llm.__class__.__name__ == "BlipLLM": # just for local blip testing --> drops all questions without image or image path
+                self.df_targets = df[df['image_path'].notna() & (df['image_path'].str.strip() != "")].reset_index(drop=True)
+            else:
+                self.df_targets = df.reset_index(drop=True)
         else:
             self.df_targets = df[df['image_path'].isna() | (df['image_path'].str.strip() == "")].reset_index(drop=True)
         self.df_examples = df[df['is_added'].fillna(False) == True].reset_index(drop=True)

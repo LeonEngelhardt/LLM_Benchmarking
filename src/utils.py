@@ -1,4 +1,7 @@
 import pandas as pd
+from PIL import Image
+import requests
+from io import BytesIO
 
 def load_csv(path: str):
     return pd.read_csv(path)
@@ -13,3 +16,10 @@ def normalize_image_path(path: str) -> str:
             "https://raw.githubusercontent.com/"
         ).replace("/blob/", "/")
     return path
+
+def load_image(image_path: str) -> Image.Image:
+    if image_path.startswith("http"):
+        resp = requests.get(image_path)
+        return Image.open(BytesIO(resp.content)).convert("RGB")
+    else:
+        return Image.open(image_path).convert("RGB")

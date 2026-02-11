@@ -1,15 +1,15 @@
 import torch
-from transformers import AutoProcessor, AutoModelForCausalLM
+from transformers import Qwen3VLMoeForConditionalGeneration, AutoProcessor
 from .base import BaseLLM
 
-class InternS1LLM(BaseLLM):
-    def __init__(self, model_name="internlm/Intern-S1", device="cuda" if torch.cuda.is_available() else "cpu", vision=True):
+class Qwen3VLLLM(BaseLLM):
+    def __init__(self, model_name, device="cuda" if torch.cuda.is_available() else "cpu", vision=True):
         super().__init__(model_name, vision)
         self.device = device
 
     def load(self):
         self.processor = AutoProcessor.from_pretrained(self.model_name, trust_remote_code=True)
-        self.model = AutoModelForCausalLM.from_pretrained(
+        self.model = Qwen3VLMoeForConditionalGeneration.from_pretrained(
             self.model_name,
             device_map="auto" if self.device.startswith("cuda") else None,
             torch_dtype=torch.bfloat16 if self.device.startswith("cuda") else torch.float32,
@@ -18,13 +18,13 @@ class InternS1LLM(BaseLLM):
         self.model.eval()
         self.loaded = True
 
-    def generate(self, prompt, image_path=None, max_new_tokens=256, temperature=0.7, top_p=1.0, top_k=50):
+    def generate(self, prompt: str, image_path: str | None = None):
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")
 
         content = []
         if self.vision and image_path:
-            content.append({"type": "image", "url": image_path})
+            content.append({"type": "image", "image": image_path})
         content.append({"type": "text", "text": prompt})
 
         messages = [{"role": "user", "content": content}]
@@ -35,23 +35,17 @@ class InternS1LLM(BaseLLM):
             tokenize=True,
             return_dict=True,
             return_tensors="pt"
-        ).to(self.model.device, dtype=torch.bfloat16)
+        ).to(self.model.device)
 
         with torch.no_grad():
-            outputs = self.model.generate(
-                **inputs,
-                max_new_tokens=max_new_tokens,
-                do_sample=True,
-                temperature=temperature,
-                top_p=top_p,
-                top_k=top_k
-            )
+            generated_ids = self.model.generate(**inputs, max_new_tokens=256)
 
-        response = self.processor.decode(
-            outputs[0, inputs["input_ids"].shape[-1]:],
-            skip_special_tokens=True
-        )
+        generated_ids_trimmed = [
+            out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+        ]
+        output_text = self.processor.batch_decode(generated_ids_trimmed, skip_special_tokens=True)
 
+        response = output_text[0].strip()
         if "Answer:" in response:
             return response.split("Answer:")[-1].strip()
-        return response.strip()
+        return response

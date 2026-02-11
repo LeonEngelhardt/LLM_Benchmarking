@@ -7,47 +7,39 @@ class OpenAILLM(BaseLLM):
         super().__init__(model_name)
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-    def load(self): self.loaded = True # pass
+    def load(self): self.loaded = True
+    
+    def generate(self, prompt, image_path=None):   
+        # In case we use the non-vision API
+        #response = self.client.responses.create(
+        #    model=self.model_name,
+        #    instructions="",
+        #    input=prompt,
+        #)
+  
+        if image_path:
+            input_content = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": prompt},
+                        {"type": "input_image", "image_url": image_path},
+                    ],
+                }
+            ]
+        else:
+            input_content = prompt
 
-    def generate(self, prompt, image_path=None):
-        res = self.client.chat.completions.create(
+        response = self.client.responses.create(
             model=self.model_name,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=256,
-            temperature=0.7
+            input=input_content,
+            max_output_tokens=256,
+            temperature=0.0
         )
-        # return res.choices[0].message.content
 
-        # Postprocessing of answer --> if not reimplement return statement above...
-        text = res.choices[0].message.content.strip()
+        text = response.output_text.strip()
 
         if "Answer:" in text:
             return text.split("Answer:")[-1].strip()
 
         return text
-    
-
-    # if we use gpt4o for text and images:
-    """def generate(self, prompt, image_path=None):
-    if image_path:
-        # structured multimodal payload
-        messages = [
-            {
-                "role": "user",
-                "content": [
-                    { "type": "text", "text": prompt },
-                    { "type": "image_url",
-                      "image_url": { "url": image_path }
-                    }
-                ]
-            }
-        ]
-    else:
-        messages = [{"role": "user", "content": prompt}]
-    
-    res = self.client.chat.completions.create(
-        model=self.model_name,
-        messages=messages,
-        max_tokens=256,
-        temperature=0.7
-    )""" 

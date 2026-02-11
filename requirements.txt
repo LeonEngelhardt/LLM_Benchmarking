@@ -15,3 +15,6 @@ anthropic
 openrouter
 qwen
 google-genai
+mistral_inference
+
+vllm --upgrade
