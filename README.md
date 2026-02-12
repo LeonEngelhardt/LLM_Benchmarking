@@ -19,14 +19,14 @@ pip install -r requirements.txt
 
 ## Running the experiments
 
-Run all experiments:
+## Run all experiments:
 python -m src.main
 
-Only One-Shot:
+## Only One-Shot:
 python -m src.main --experiment one-shot
 
-Only Two-Shot:
+## Only Two-Shot:
 python -m src.main --experiment two-shot
 
-Only Learning from Experience:
+## Only Learning from Experience:
 python -m src.main --experiment lfe

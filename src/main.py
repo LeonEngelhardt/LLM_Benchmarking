@@ -36,9 +36,8 @@ def main():
         print("[INFO] Using Qwen as LLM-based closeness evaluator")
 
         qwen_judge = get_llm(
-            model_name="qwen/qwen3-235b",
+            model_name="Qwen/Qwen3-VL-235B-A22B-Instruct",
             vision=False,
-            #verbose=True
         )
         closeness_eval = LLMClosenessEvaluator(qwen_judge)
     else:
@@ -49,26 +48,21 @@ def main():
     # Models to benchmark
     models_to_test = [
         # Text-only
-        {"name": "gpt2", "vision": False},                                  # local HF --> only for testing
-                    # {"name": "qwen/qwen3-235b", "vision": False},                     # OpenRouter API
-        # {"name": "mistralai/Mistral-7B-Instruct-v0.3", "vision": False},  # HF
-        # {"name": "claude-3-opus", "vision": False},                       # Anthropic API
-        # {"name": "google/gemma-2-9b-it", "vision": False}                 # HF
-        # {"name": "google/gemma-2-27b-it", "vision": False}                # HF (needs strong gpu i.e. at least 48 GB of GPU advised --> keep it?)
+        #{"name": "gpt2", "vision": False},                                  # local HF --> only for testing
+        # {"name": "mistralai/Mistral-7B-Instruct-v0.3", "vision": False},  # HF   
+        # {"name": "deepseek-v3.2", "vision": False},                       # Deepseek API --> we could run it locally but according to docu 8 x A100 gpus needed for full precision
 
         # Vision
         {"name": "Salesforce/blip-image-captioning-base", "vision": True},  # local HF --> only for testing
-        # {"name": "deepseek-r1", "vision": True},                          # OpenRouter API
-        # {"name": "gemini-2.5-pro", "vision": True},                       # Gemini API
-        # {"name": "gemini-2.5-flash", "vision": True},                     # Gemini API --> but faster and cheaper than the pro version
+        # {"name": "gemini-3-pro-preview", "vision": True},                 # Gemini API
         # {"name": "llava-hf/llava-v1.6-mistral-7b-hf", "vision": True}     # HF
-        # {"name": "internlm/Intern-S1", "vision": True}                    # HF
+        # {"name": "internlm/Intern-S1", "vision": True},                   # HF
         # {"name": "gpt-5.1-chat-latest", "vision": True},                  # OpenAI
         # {"name": "meta-llama/Llama-4-Scout-17B-16E-Instruct", "vision": True},       # HF local / HF inference
         # {"name": "Qwen/Qwen3-VL-235B-A22B-Instruct", "vision": True},     # HF
+        # {"name": "google/gemma-3-27b-it", "vision": True},                # HF
+        # {"name": "claude-opus-4-6", "vision": True},                      # Anthropic API
     ]
-
-    # Todo: gemini, deepseek, claude and gemma (gwen3-235b)
 
     # Benchmarking loop
     for model_info in models_to_test:
@@ -132,7 +126,7 @@ def main():
         # Learning-from-Experience
         if args.experiment in ["lfe", "all"]:
             print(f"--- {model_name} | Learning-from-Experience ---")
-            lfe_df = runner.run_learning_from_experience(max_iterations=5)
+            lfe_df = runner.run_learning_from_experience(max_iterations=2)
             save_csv(
                 lfe_df,
                 f"results/{model_name.replace('/', '_')}_lfe.csv"

@@ -13,14 +13,22 @@ class BenchmarkRunner:
         self.vision = vision
 
         if vision:
-            if self.llm.__class__.__name__ == "BlipLLM": # just for local blip testing --> drops all questions without image or image path
+            if self.llm.__class__.__name__ == "BlipLLM":  # just for local blip testing --> drops all questions without image or image path
                 self.df_targets = df[df['image_path'].notna() & (df['image_path'].str.strip() != "")].reset_index(drop=True)
             else:
                 self.df_targets = df.reset_index(drop=True)
         else:
             self.df_targets = df[df['image_path'].isna() | (df['image_path'].str.strip() == "")].reset_index(drop=True)
-        self.df_examples = df[df['is_added'].fillna(False) == True].reset_index(drop=True)
-        self.df_originals = df[df['is_added'].fillna(False) == False].reset_index(drop=True)
+
+        if self.llm.__class__.__name__ == "BlipLLM":  # nur BLIP: Beispiele & Originalfragen mit Bild
+            self.df_examples = df[(df['is_added'].fillna(False) == True) & (df['image_path'].notna())].reset_index(drop=True)
+            self.df_originals = df[(df['is_added'].fillna(False) == False) & (df['image_path'].notna())].reset_index(drop=True)
+        else:
+            self.df_examples = df[df['is_added'].fillna(False) == True].reset_index(drop=True)
+            self.df_originals = df[df['is_added'].fillna(False) == False].reset_index(drop=True)
+
+        #self.df_examples = df[df['is_added'].fillna(False) == True].reset_index(drop=True)
+        #self.df_originals = df[df['is_added'].fillna(False) == False].reset_index(drop=True)
     
     def _extract_final_answer(self, text: str) -> str:
         separator = "Answer:"
@@ -51,6 +59,156 @@ class BenchmarkRunner:
             return example_rows[:n]
         return example_rows
 
+    def run_one_shot(self):
+        results = []
+
+        for _, row in tqdm(self.df_targets.iterrows(), total=len(self.df_targets), desc="One-Shot"):
+            example_rows = self._get_example_rows(row, n=None)
+            for ex in example_rows:
+                prompt = build_prompt(row, [ex], mode="one_shot")
+
+                #image_path = self._get_image_path(row) if self.vision else None
+                image_path = self._get_image_path(ex) if self.vision else None
+
+                print("===== One-Shot Prompt =====")
+                print(prompt)
+                print("image_path:")
+                print(image_path)
+                print("===========================")
+
+                if self.vision and image_path:
+                    raw_answer = self.llm.generate(prompt, image_path=image_path)
+                else:
+                    raw_answer = self.llm.generate(prompt)
+
+                if not raw_answer:
+                    raw_answer = "[No answer]"
+
+                clean_answer = self._extract_final_answer(raw_answer)
+                is_correct, closeness = self._evaluate_answer(clean_answer, row['answer'])
+
+                results.append({
+                    "mode": "one_shot",
+                    "question": row['question'],
+                    "ground_truth": row['answer'],
+                    "llm_raw_output": raw_answer,
+                    "llm_answer": clean_answer,
+                    "is_correct": is_correct,
+                    "closeness_score": closeness
+                })
+
+        return pd.DataFrame(results)
+
+    def run_two_shot(self):
+        results = []
+
+        for _, row in tqdm(self.df_targets.iterrows(), total=len(self.df_targets), desc="Two-Shot"):
+            example_rows = self._get_example_rows(row, n=2)
+            if not example_rows:
+                continue
+
+            prompt = build_prompt(row, example_rows, mode="two_shot")
+
+            print("===== Two-Shot Prompt =====")
+            print(prompt)
+            print("===========================")
+
+            image_paths = []
+            if self.vision:
+                for ex in example_rows:
+                    img = self._get_image_path(ex)
+                    if img:
+                        image_paths.append(img)
+                target_img = self._get_image_path(row)
+                if target_img:
+                    image_paths.append(target_img)
+
+            if self.vision and image_paths:
+                raw_answer = self.llm.generate(prompt, image_path=image_paths)
+            else:
+                raw_answer = self.llm.generate(prompt)
+
+            if not raw_answer:
+                raw_answer = "[No answer]"
+
+            clean_answer = self._extract_final_answer(raw_answer)
+            is_correct, closeness = self._evaluate_answer(clean_answer, row['answer'])
+
+            results.append({
+                "mode": "two_shot",
+                "question": row['question'],
+                "ground_truth": row['answer'],
+                "llm_raw_output": raw_answer,
+                "llm_answer": clean_answer,
+                "is_correct": is_correct,
+                "closeness_score": closeness
+            })
+
+        return pd.DataFrame(results)
+
+    def run_learning_from_experience(self, max_iterations):
+        results = []
+
+        for _, row in tqdm(self.df_originals.iterrows(),
+                           total=len(self.df_originals),
+                           desc="Learning-from-Experience"):
+
+            image_path = self._get_image_path(row) if self.vision else None
+            current_prompt = build_prompt(row, [], mode="zero_shot")
+
+            print("===== Two-Shot Prompt =====")
+            print(_)
+            print(current_prompt)
+            print("===========================")
+
+            if not current_prompt or not current_prompt.strip():
+                current_prompt = f"Question: {row['question']}\nAnswer:"
+
+            final_raw_answer = None
+            final_clean_answer = None
+            num_iterations = 0
+            is_correct = False
+            closeness = None
+
+            for _ in range(max_iterations):
+                num_iterations += 1
+
+                if self.vision and image_path:
+                    raw_answer = self.llm.generate(current_prompt, image_path=image_path)
+                else:
+                    raw_answer = self.llm.generate(current_prompt)
+
+                if not raw_answer:
+                    raw_answer = "[No answer]"
+
+                clean_answer = self._extract_final_answer(raw_answer)
+                final_raw_answer = raw_answer
+                final_clean_answer = clean_answer
+
+                is_correct, closeness = self._evaluate_answer(clean_answer, row['answer'])
+                if is_correct:
+                    break
+
+                current_prompt += "\n\nYour answer was incorrect. Please try again."
+
+            results.append({
+                "mode": "learning_from_experience",
+                "question": row['question'],
+                "ground_truth": row['answer'],
+                "llm_raw_output": final_raw_answer,
+                "llm_answer": final_clean_answer,
+                "is_correct": is_correct,
+                "num_iterations": num_iterations,
+                "closeness_score": closeness
+            })
+
+        return pd.DataFrame(results)
+
+
+
+
+
+"""
     def run_one_shot(self):
         results = []
         for _, row in tqdm(self.df_targets.iterrows(), total=len(self.df_targets), desc="One-Shot"):
@@ -144,11 +302,11 @@ class BenchmarkRunner:
             for _ in range(max_iterations):
                 num_iterations += 1
 
-                """
+                """"""
                 if self.vision and image_path:
                     raw_answer = self.llm.generate(current_prompt, image_path=image_path)
                 else:
-                    raw_answer = self.llm.generate(current_prompt)"""
+                    raw_answer = self.llm.generate(current_prompt)""""""
                 if self.vision and image_path:
                     raw_answer = self.llm.generate(current_prompt, image_path=image_path)
                 elif self.vision and not image_path:
@@ -183,4 +341,4 @@ class BenchmarkRunner:
                 "closeness_score": closeness
             })
 
-        return pd.DataFrame(results)
+        return pd.DataFrame(results)"""

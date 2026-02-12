@@ -4,6 +4,7 @@ id,question,image,image_preview,image_path,answer,answer_type,author_name,ration
 ,"What sign marked with ""sign"" as a placeholder is missing here to fulfill the equation with equality?: 5 ""sign"" 5 = 25",,,,*,multipleChoice,,"* is the missing sign, because 5 * 5 = 25",Medicine,,66e991ec2dad0e536fb92ece,true,2
 12345,What animal is shown in the provided image?,,,data/images/test_image_2.jpg,Cat,exactMatch,,The image shows a cat,,,,false
 ,What animal is shown in the provided image?,,,data/images/test_image.jpg,Cat,exactMatch,,The image shows a cat,,,12345,true,1
+,What animal is shown in the provided image?,,,data/images/test_image_2.jpg,Cat,exactMatch,,The image shows a cat,,,12345,true,2
 678910,What is the result of 1 + 1?,,,,2,exactMatch,,1 + 1 = 2,,,,false
 ,What is the result of 1 - 1?,,,,0,exactMatch,,1 - 1 = 0,,,678910,true,1
 ,What is the result of 1 * 1?,,,,1,exactMatch,,1 * 1 = 1,,,678910,true,2
