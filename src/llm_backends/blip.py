@@ -3,6 +3,7 @@ from PIL import Image
 from .base import BaseLLM
 import torch
 
+
 class BlipLLM(BaseLLM):
     def __init__(self, model_name, device="cpu"):
         super().__init__(model_name, vision=True)
@@ -12,102 +13,67 @@ class BlipLLM(BaseLLM):
     def load(self):
         self.processor = BlipProcessor.from_pretrained(self.model_name)
         self.model = BlipForConditionalGeneration.from_pretrained(self.model_name)
+
         self.model.to(self.device)
         self.model.eval()
         self.loaded = True
-        self._dummy_image = Image.new("RGB", (224, 224), color="white")
 
-    def generate(self, prompt, image_path=None, max_new_tokens=512, temperature=0.7):
+    def generate(self, prompt_parts, image_paths=None, max_new_tokens=512, temperature=0.7):
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")
 
-        if image_path is None:
-            images = [self._dummy_image]
-        elif isinstance(image_path, list):
-            images = []
-            for path in image_path:
-                try:
-                    img = Image.open(path).convert("RGB")
-                    images.append(img)
-                except Exception as e:
-                    print(f"[WARN] Could not open image '{path}', using dummy: {e}")
-                    images.append(self._dummy_image)
+        # ------------------------
+        # TEXT extrahieren
+        # ------------------------
+        if isinstance(prompt_parts, list):
+            text_blocks = [p["text"] for p in prompt_parts if p["type"] == "text"]
+            prompt_text = "\n\n".join(text_blocks)
         else:
-            try:
-                images = [Image.open(image_path).convert("RGB")]
-            except Exception as e:
-                print(f"[WARN] Could not open image '{image_path}', using dummy: {e}")
-                images = [self._dummy_image]
+            prompt_text = str(prompt_parts)
 
-        inputs = self.processor(
-            images=images,
-            text=[prompt] * len(images),
-            return_tensors="pt"
-        ).to(self.device)
+        # ------------------------
+        # IMAGE bestimmen
+        # ------------------------
+        image_path = None
 
-        with torch.no_grad():
-            outputs = self.model.generate(
-                **inputs,
-                max_new_tokens=max_new_tokens,
-                do_sample=True,
-                temperature=temperature
-            )
+        if image_paths:
+            image_path = image_paths[-1]
+        else:
+            if isinstance(prompt_parts, list):
+                image_blocks = [p for p in prompt_parts if p["type"] == "image"]
+                if image_blocks:
+                    image_path = image_blocks[-1]["source"]["url"]
 
-        texts = [self.processor.decode(out, skip_special_tokens=True).strip() for out in outputs]
-
-        final_text = " ".join(texts) if len(texts) > 1 else texts[0]
-
-        return final_text
-
-
-
-
-"""from transformers import BlipProcessor, BlipForConditionalGeneration
-from PIL import Image
-from .base import BaseLLM
-import torch
-
-class BlipLLM(BaseLLM):
-    def __init__(self, model_name, device="cpu"):
-        super().__init__(model_name, vision=True)
-        self.device = device
-        self.loaded = False
-
-    def load(self):
-        self.processor = BlipProcessor.from_pretrained(self.model_name)
-        self.model = BlipForConditionalGeneration.from_pretrained(self.model_name)
-        self.model.to(self.device)
-        self.model.eval()
-        self.loaded = True
-
-    def generate(self, prompt, image_path=None, max_new_tokens=512, temperature=0.7):
-        if not self.loaded:
-            raise RuntimeError("Model not loaded. Call `load()` first.")
-
+        # ------------------------
+        # Dummy-Bild erzeugen, falls kein Bild vorhanden
+        # ------------------------
         if not image_path:
-            
-            raise ValueError("BLIP requires an image_path input for generation.")
-
-        if isinstance(image_path, list):
-            images = []
-            for path in image_path:
-                try:
-                    img = Image.open(path).convert("RGB")
-                    images.append(img)
-                except Exception as e:
-                    raise RuntimeError(f"Could not open image '{path}': {e}")
+            print("[BLIP] Kein Bild gefunden – benutze Dummy-Bild.")
+            image = Image.new("RGB", (224, 224), color=(128, 128, 128))  # graues Dummy-Bild
         else:
             try:
-                images = [Image.open(image_path).convert("RGB")]
+                image = Image.open(image_path).convert("RGB")
             except Exception as e:
                 raise RuntimeError(f"Could not open image '{image_path}': {e}")
 
+        # ------------------------
+        # Debug-Ausgabe
+        # ------------------------
+        print("Image: ", image)
+        print("Prompt: ", prompt_text)
+
+        # ------------------------
+        # Eingaben für BLIP
+        # ------------------------
         inputs = self.processor(
-            images=images,
-            text=[prompt] * len(images),
+            images=image,
+            text=prompt_text,
             return_tensors="pt"
         ).to(self.device)
 
+        # ------------------------
+        # Generation
+        # ------------------------
         with torch.no_grad():
             outputs = self.model.generate(
                 **inputs,
@@ -116,5 +82,5 @@ class BlipLLM(BaseLLM):
                 temperature=temperature
             )
 
-        texts = [self.processor.decode(out, skip_special_tokens=True).strip() for out in outputs]
-        return " ".join(texts)"""
+        text = self.processor.decode(outputs[0], skip_special_tokens=True)
+        return text.strip()

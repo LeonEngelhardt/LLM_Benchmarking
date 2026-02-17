@@ -48,16 +48,16 @@ def main():
     # Models to benchmark
     models_to_test = [
         # Text-only
-        #{"name": "gpt2", "vision": False},                                  # local HF --> only for testing
+        {"name": "gpt2", "vision": False},                                # local HF --> only for testing
         # {"name": "mistralai/Mistral-7B-Instruct-v0.3", "vision": False},  # HF   
-        # {"name": "deepseek-v3.2", "vision": False},                       # Deepseek API --> we could run it locally but according to docu 8 x A100 gpus needed for full precision
+        {"name": "deepseek-v3.2", "vision": False},                       # Deepseek API --> we could run it locally but according to docu 8 x A100 gpus needed for full precision
 
         # Vision
-        {"name": "Salesforce/blip-image-captioning-base", "vision": True},  # local HF --> only for testing
+        {"name": "Salesforce/blip-image-captioning-base", "vision": True},# local HF --> only for testing
         # {"name": "gemini-3-pro-preview", "vision": True},                 # Gemini API
-        # {"name": "llava-hf/llava-v1.6-mistral-7b-hf", "vision": True}     # HF
+        # {"name": "llava-hf/llava-onevision-qwen2-7b-ov-hf", "vision": True} # HF
         # {"name": "internlm/Intern-S1", "vision": True},                   # HF
-        # {"name": "gpt-5.1-chat-latest", "vision": True},                  # OpenAI
+        {"name": "gpt-5.1-chat-latest", "vision": True},                  # OpenAI
         # {"name": "meta-llama/Llama-4-Scout-17B-16E-Instruct", "vision": True},       # HF local / HF inference
         # {"name": "Qwen/Qwen3-VL-235B-A22B-Instruct", "vision": True},     # HF
         # {"name": "google/gemma-3-27b-it", "vision": True},                # HF
