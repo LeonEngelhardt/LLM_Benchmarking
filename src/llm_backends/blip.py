@@ -22,18 +22,12 @@ class BlipLLM(BaseLLM):
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")
 
-        # ------------------------
-        # TEXT extrahieren
-        # ------------------------
         if isinstance(prompt_parts, list):
             text_blocks = [p["text"] for p in prompt_parts if p["type"] == "text"]
             prompt_text = "\n\n".join(text_blocks)
         else:
             prompt_text = str(prompt_parts)
 
-        # ------------------------
-        # IMAGE bestimmen
-        # ------------------------
         image_path = None
 
         if image_paths:
@@ -44,36 +38,24 @@ class BlipLLM(BaseLLM):
                 if image_blocks:
                     image_path = image_blocks[-1]["source"]["url"]
 
-        # ------------------------
-        # Dummy-Bild erzeugen, falls kein Bild vorhanden
-        # ------------------------
         if not image_path:
             print("[BLIP] Kein Bild gefunden – benutze Dummy-Bild.")
-            image = Image.new("RGB", (224, 224), color=(128, 128, 128))  # graues Dummy-Bild
+            image = Image.new("RGB", (224, 224), color=(128, 128, 128))
         else:
             try:
                 image = Image.open(image_path).convert("RGB")
             except Exception as e:
                 raise RuntimeError(f"Could not open image '{image_path}': {e}")
 
-        # ------------------------
-        # Debug-Ausgabe
-        # ------------------------
         print("Image: ", image)
         print("Prompt: ", prompt_text)
 
-        # ------------------------
-        # Eingaben für BLIP
-        # ------------------------
         inputs = self.processor(
             images=image,
             text=prompt_text,
             return_tensors="pt"
         ).to(self.device)
 
-        # ------------------------
-        # Generation
-        # ------------------------
         with torch.no_grad():
             outputs = self.model.generate(
                 **inputs,

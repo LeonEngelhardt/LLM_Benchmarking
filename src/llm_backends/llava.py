@@ -21,14 +21,7 @@ class LlavaOneVision7BLLM(BaseLLM):
         self.model.eval()
         self.loaded = True
 
-    def generate(
-        self,
-        prompt_parts,
-        image_paths=None,
-        max_new_tokens=256,
-        temperature=0.7,
-        do_sample=True
-    ):
+    def generate(self, prompt_parts, image_paths=None, max_new_tokens=256, temperature=0.7, do_sample=True):
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")
 
