@@ -275,34 +275,38 @@ class BenchmarkRunner:
     
 
     def check_token_length(self, prompt_parts):
-        # Tokenlänge des Prompts berechnen
         prompt_text = " ".join([part['text'] for part in prompt_parts if 'text' in part])
         tokens = self.tokenizer.encode(prompt_text)
-        
-        # Wenn die Länge der Tokens zu groß ist, verwende Qwen3, um das Prompt zu kürzen
+
         if len(tokens) > 4096:
-            print(f"Prompt überschreitet 4096 Tokens, Kürzung erforderlich!")
-            # Hier verwendest du Qwen3 oder eine andere Methode, um das Prompt zu kürzen.
+            print(f"Prompt exceeds 4096 tokens, thus Qwen3 will be used to shorten it!")
             prompt_parts = self.shorten_prompt_with_qwen3(prompt_parts)
         
         return prompt_parts
     
 
     def shorten_prompt_with_qwen3(self, prompt_parts):
-        """
-        Verwendet Qwen3, um das Prompt zu kürzen, ohne die Struktur oder wichtige Informationen zu verlieren.
-        """
-        # Qwen3 verwenden (z.B. über die ClosenessEvaluator oder eine andere Methode)
-        print("Verwende Qwen3, um das Prompt zu kürzen...")
+        print("Using Qwen3 to shorten the prompt to fit within the 4096 token limit...")
+
         prompt_text = " ".join([part['text'] for part in prompt_parts if 'text' in part])
-        shortened_prompt = self.closeness_evaluator.llm.generate(prompt_text)  # Qwen3 kürzt das Prompt
 
-        # Kürzungslogik: Prompt verkürzen, aber die Struktur beibehalten
-        # Hier ist der Ansatz abhängig von der Qwen3-Methode, die du verwendest
-        # Du könntest auch die wichtigen Teile des Prompts priorisieren und nur unwichtige Teile entfernen
+        qwen3_prompt = f"""
+        You are a highly skilled assistant trained to shorten and summarize large chunks of text while keeping the essential meaning intact.
+        Your task is to reduce the following text to fit within a 4096-token limit without losing important context or key details.
+        Keep the structure intact, and prioritize shortening less important parts while preserving critical roles such as <|User|>, <|Assistant|>, and any system instructions.
 
-        # Beispiel: Einfache Kürzung, die die Struktur beibehält
+        If the text has any structured format (such as JSON or a similar format), keep the format intact, and ensure no data or key structural elements are lost.
+
+        Here is the text you need to shorten:
+        "{prompt_text}"
+
+        Shortened text:
+        """
+
+        shortened_prompt = self.closeness_evaluator.llm.generate(qwen3_prompt)
+
         return [{"type": "text", "text": shortened_prompt}]
+
 
 
 
