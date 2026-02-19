@@ -3,6 +3,8 @@
 # Python virtual environments
 venv/
 venv_test/
+venv_all_other_models/
+venv_only_deepseek_vl2/
 
 # Python cache
 __pycache__/
@@ -15,3 +17,5 @@ results
 # VSCode
 .vscode/
 *.log
+
+external/

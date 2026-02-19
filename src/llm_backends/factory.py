@@ -1,6 +1,7 @@
 from .hf_text import HFTextLLM
 from .blip import BlipLLM
 from .deepseek import DeepSeekV3LLM
+from.deepseekvl2 import DeepSeekVLV2LLM
 from .qwen3 import Qwen3VLLLM
 from .qwen2 import Qwen2VLLLM
 from .openai import OpenAILLM
@@ -22,8 +23,8 @@ def get_llm(model_name: str, vision: bool, device="cpu", hf_token=None):
     name = model_name.lower()
 
     # LOCAL HF MODELS - Text only
-    #if name == "gpt2":
-    #    return HFTextLLM(model_name, device, hf_token)
+    if name == "gpt2":
+        return HFTextLLM(model_name, device, hf_token)
 
     # API MODELS
     if "openai" in name or name.startswith("gpt"):
@@ -71,8 +72,11 @@ def get_llm(model_name: str, vision: bool, device="cpu", hf_token=None):
     if "blip" in name:
         return BlipLLM(model_name, device)
 
-    if "deepseek" in name:
+    if "deepseek-v3" in name or "deepseek-v2" in name:
         return DeepSeekV3LLM(model_name, device)
+    
+    if "deepseek-vl2" in name: 
+        return DeepSeekVLV2LLM(model_name, device)
 
     if "qwen3" in name:
         return Qwen3VLLLM(model_name, device)

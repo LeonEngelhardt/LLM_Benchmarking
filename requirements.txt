@@ -1,3 +1,4 @@
+dotenv
 sentence-transformers
 torch
 transformers
@@ -18,4 +19,9 @@ google-genai
 mistral_inference
 qwen_vl_util
 
-vllm --upgrade
+
+#vllm --upgrade
+
+# on the cluster for deepseek vl2
+#pip install torch==2.0.1+cu117 --index-url https://download.pytorch.org/whl/cu117
+#pip install -e git+https://github.com/deepseek-ai/deepseek-vl2.git#egg=deepseek-vl2

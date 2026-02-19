@@ -11,6 +11,11 @@ from src.evaluator import (
 from src.llm_backends.factory import get_llm
 
 
+def get_active_venv():
+    venv_name = os.path.basename(os.getenv('VIRTUAL_ENV', ''))
+    return venv_name
+
+
 def main():
 
     parser = argparse.ArgumentParser(description="LLM Benchmark Framework")
@@ -45,36 +50,41 @@ def main():
         closeness_eval = ClosenessEvaluator()
 
 
+
+    venv_name = get_active_venv()
+
     # Models to benchmark
-    models_to_test = [
-        # Text-only
-        # {"name": "gpt2", "vision": False},                                # local HF --> only for testing
-        # {"name": "mistralai/Mistral-7B-Instruct-v0.3", "vision": False},  # HF   
-        # {"name": "deepseek-v3.2", "vision": False},                       # Deepseek API --> we could run it locally but according to docu 8 x A100 gpus needed for full precision
-
-        # Vision
-        # {"name": "Salesforce/blip-image-captioning-base", "vision": True},# local HF --> only for testing        
-        # {"name": "llava-hf/llava-onevision-qwen2-7b-ov-hf", "vision": True} # HF
-        # {"name": "internlm/Intern-S1", "vision": True},                   # HF
-        # {"name": "claude-opus-4-6", "vision": True},                      # Anthropic API
-        # {"name": "claude-3-opus-latest", "vision": True},                      # Anthropic API
-
-
-        # {"name": "gpt-5.2", "vision": True},                  # OpenAI
-        # {"name": "gpt-4.1", "vision": True},                  # OpenAI 
-        # {"name": "gpt-3.5-turbo", "vision": False},                  # OpenAI 
-        # {"name": "Qwen/Qwen3-VL-235B-A22B-Instruct", "vision": True},     # HF
-        # {"name": "Qwen/Qwen2.5-VL-32B-Instruct", "vision": True},     # HF
-        # {"name": "Qwen/Qwen2-VL-2B-Instruct", "vision": True},     # HF
-        # {"name": "meta-llama/Llama-4-Scout-17B-16E-Instruct", "vision": True},       # HF local / HF inference
-        # {"name": "meta-llama/Llama-3.2-90B-Vision-Instruct", "vision": True},  
-        # {"name": "meta-llama/Llama-3.1-70B-Instruct", "vision": False},  
-        # {"name": "meta-llama/Meta-Llama-3-70B-Instruct", "vision": False},  
-        # {"name": "google/gemma-3-27b-it", "vision": True},                # HF
-        # {"name": "google/gemma-2-9b-it", "vision": False},                # HF
-        # {"name": "gemini-3-pro-preview", "vision": True},                 # Gemini API
-        # {"name": "gemini-2.5-pro", "vision": True},                 # Gemini API
-    ]
+    if venv_name == "venv_deepseek_vl2":
+            models_to_test = [ {"name": "deepseek-ai/deepseek-vl2", "vision": True} ]
+    elif venv_name == "venv_all_other_models":
+        models_to_test = [
+            # Text-only
+            # {"name": "gpt2", "vision": False},                                    # local HF --> only for testing
+            # {"name": "mistralai/Mistral-7B-Instruct-v0.3", "vision": False},      # HF   
+            # {"name": "deepseek-v3.2", "vision": False},                           # Deepseek API
+            # {"name": "DeepSeek-V3.1", "vision": False},
+            # {"name": "DeepSeek-V3", "vision": False},
+            # {"name": "DeepSeek-V2", "vision": False},  
+            # {"name": "Salesforce/blip-image-captioning-base", "vision": True},    # local HF --> only for testing        
+            # {"name": "llava-hf/llava-onevision-qwen2-7b-ov-hf", "vision": True}   # HF
+            # {"name": "internlm/Intern-S1", "vision": True},                       # HF
+            # {"name": "claude-opus-4-6", "vision": True},                          # Anthropic API
+            # {"name": "claude-3-opus-latest", "vision": True},                     # Anthropic API
+            # {"name": "gpt-5.2", "vision": True},                                  # OpenAI
+            # {"name": "gpt-4.1", "vision": True},                                  # OpenAI 
+            # {"name": "gpt-3.5-turbo", "vision": False},                           # OpenAI 
+            # {"name": "Qwen/Qwen3-VL-235B-A22B-Instruct", "vision": True},         # HF
+            # {"name": "Qwen/Qwen2.5-VL-32B-Instruct", "vision": True},             # HF
+            # {"name": "Qwen/Qwen2-VL-2B-Instruct", "vision": True},                # HF
+            # {"name": "meta-llama/Llama-4-Scout-17B-16E-Instruct", "vision": True},# HF local / HF inference
+            # {"name": "meta-llama/Llama-3.2-90B-Vision-Instruct", "vision": True},  
+            # {"name": "meta-llama/Llama-3.1-70B-Instruct", "vision": False},  
+            # {"name": "meta-llama/Meta-Llama-3-70B-Instruct", "vision": False},  
+            # {"name": "google/gemma-3-27b-it", "vision": True},                    # HF
+            # {"name": "google/gemma-2-9b-it", "vision": False},                    # HF
+            # {"name": "gemini-3-pro-preview", "vision": True},                     # Gemini API
+            # {"name": "gemini-2.5-pro", "vision": True},                           # Gemini API
+        ]
 
     # Benchmarking loop
     for model_info in models_to_test:
@@ -138,7 +148,7 @@ def main():
         # Learning-from-Experience
         if args.experiment in ["lfe", "all"]:
             print(f"--- {model_name} | Learning-from-Experience ---")
-            lfe_df = runner.run_learning_from_experience(max_iterations=2)
+            lfe_df = runner.run_learning_from_experience()
             save_csv(
                 lfe_df,
                 f"results/{model_name.replace('/', '_')}_lfe.csv"

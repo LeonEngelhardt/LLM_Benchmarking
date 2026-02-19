@@ -30,3 +30,30 @@ python -m src.main --experiment two-shot
 
 ## Only Learning from Experience:
 python -m src.main --experiment lfe
+
+
+## running the framework on a cluster:
+# create two virtual environments. The first one:
+python -m venv venv_all_other_models
+
+# activate it:
+venv_all_other_models\Scripts\activate
+
+# install all needed modules for it:
+pip istall requirements.txt
+
+# deactivate the first venv to create the second one:
+deactivate
+
+# create the second one:
+python -m venv venv_only_deepseek_vl2
+
+# activate it
+venv_only_deepseek_vl2\Scripts\activate
+
+# change path to repo deepseek folder
+cd external
+cd deepseek-vl2
+
+# install all needed modules for it: 
+pip install -e .
