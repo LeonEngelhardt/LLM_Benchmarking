@@ -30,17 +30,22 @@ class MistralLLM(BaseLLM):
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")
 
-        if isinstance(prompt_parts, list):
-            text_blocks = [p["text"] for p in prompt_parts if p["type"] == "text"]
-            prompt_text = "\n\n".join(text_blocks)
+        if isinstance(prompt_parts, tuple) and len(prompt_parts) == 2:
+            instruction, blocks = prompt_parts
+            system_message = {"role": "system", "content": instruction}
         else:
-            prompt_text = str(prompt_parts)
+            system_message = None
+            blocks = prompt_parts
 
-        messages = [
-            {"role": "user", "content": prompt_text}
-        ]
+        if isinstance(blocks, list):
+            text_blocks = [p["text"] for p in blocks if p["type"] == "text"]
+            user_content = "\n\n".join(text_blocks)
+        else:
+            user_content = str(blocks)
 
-        print(messages)
+        user_message = {"role": "user", "content": user_content}
+
+        messages = [m for m in (system_message, user_message) if m is not None]
 
         inputs = self.tokenizer.apply_chat_template(
             messages,
@@ -50,14 +55,15 @@ class MistralLLM(BaseLLM):
 
         with torch.no_grad():
             outputs = self.model.generate(
-                inputs,
+                **inputs,
                 max_new_tokens=max_new_tokens,
                 temperature=temperature,
                 do_sample=True,
                 pad_token_id=self.tokenizer.eos_token_id
             )
 
-        generated_tokens = outputs[0][inputs.shape[-1]:]
+        input_length = inputs["input_ids"].shape[-1]
+        generated_tokens = outputs[0][input_length:]
         response = self.tokenizer.decode(
             generated_tokens,
             skip_special_tokens=True

@@ -1,39 +1,80 @@
+import os
 from openai import OpenAI
 from .base import BaseLLM
-import os
 
 
 class OpenAILLM(BaseLLM):
-
-    def __init__(self, model_name):
-        pass
-        #super().__init__(model_name)
-        #self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    def __init__(self, model_name, vision):
+        super().__init__(model_name, vision)
+        self.client = None
+        self.loaded = False
 
     def load(self):
-        pass
-        #self.loaded = True
+        self.client = OpenAI(
+            api_key=os.getenv("OPENAI_API_KEY")
+        )
+        self.loaded = True
+        print(f"OpenAI model '{self.model_name}' loaded.")
 
-    def generate(self, prompt_parts):
+    def generate(self, prompt_parts, max_output_tokens=256, temperature=0.0):
 
-        if not isinstance(prompt_parts, list):
-            raise ValueError("prompt_parts must be a list of content blocks")
-        
-        print(prompt_parts)
+        if not self.loaded:
+            raise RuntimeError("Model not loaded. Call `load()` first.")
 
-        #response = self.client.responses.create(
-        #    model=self.model_name,
-        #    input=[{
-        #        "role": "user",
-        #        "content": prompt_parts
-        #    }],
-        #    max_output_tokens=512,
-        #    temperature=0.0
-        #)
+        if not isinstance(prompt_parts, tuple) or len(prompt_parts) != 2:
+            raise ValueError("prompt_parts must be a tuple: (instruction, blocks)")
 
-        #text = response.output_text.strip()
+        instruction, blocks = prompt_parts
 
-        #return text
+        content_blocks = []
+
+        for part in blocks:
+            if part["type"] == "text":
+                content_blocks.append({
+                    "type": "input_text",
+                    "text": part["text"]
+                })
+
+            elif part["type"] == "image" and self.vision:
+                content_blocks.append({
+                    "type": "input_image",
+                    "image_url": part["source"]["url"]
+                })
+
+            elif part["type"] == "image" and not self.vision:
+                continue
+
+        if not content_blocks:
+            raise ValueError("No valid content blocks to send to the model.")
+
+        #print("instruction: ", instruction)
+        #print("blocks: ", content_blocks)
+                #{
+                #    "role": "system",
+                #    "content": instruction
+                #},
+
+        response = self.client.responses.create(
+            model=self.model_name,
+            instructions=instruction,
+            input=[
+                {
+                    "role": "user",
+                    "content": content_blocks
+                }
+            ],
+            max_output_tokens=max_output_tokens,
+            temperature=temperature,
+        )
+
+        text = response.output_text.strip()
+
+        if "Answer:" in text:
+            return text.split("Answer:")[-1].strip()
+
+        return text.strip()
+
+
 
 
 

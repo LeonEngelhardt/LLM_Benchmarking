@@ -30,6 +30,11 @@ class Qwen3VLLLM(BaseLLM):
 
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")
+        
+        if not isinstance(prompt_parts, tuple) or len(prompt_parts) != 2:
+            raise ValueError("prompt_parts must be a tuple: (instruction, blocks)")
+
+        instruction, blocks = prompt_parts
 
         content = []
 
@@ -44,29 +49,29 @@ class Qwen3VLLLM(BaseLLM):
                         "image": img
                     })
 
-        elif isinstance(prompt_parts, list):
-            for part in prompt_parts:
+        elif isinstance(blocks, list):
+            for part in blocks:
                 if part["type"] == "image":
                     content.append({
                         "type": "image",
                         "image": part["source"]["url"]
                     })
 
-        if isinstance(prompt_parts, list):
-            text_blocks = [p["text"] for p in prompt_parts if p["type"] == "text"]
+        if isinstance(blocks, list):
+            text_blocks = [p["text"] for p in blocks if p["type"] == "text"]
             full_text = "\n\n".join(text_blocks)
         else:
-            full_text = str(prompt_parts)
+            full_text = str(blocks)
 
         content.append({
             "type": "text",
             "text": full_text
         })
 
-        messages = [{
-            "role": "user",
-            "content": content
-        }]
+        messages = [
+            {"role": "system", "content": instruction},
+            {"role": "user", "content": content}
+            ]
 
         print(messages)
 

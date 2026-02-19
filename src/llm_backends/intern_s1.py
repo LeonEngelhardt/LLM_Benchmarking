@@ -28,46 +28,45 @@ class InternS1LLM(BaseLLM):
     def generate(self, prompt_parts, image_paths=None, max_new_tokens=256, temperature=0.7, top_p=1.0, top_k=50, do_sample=True):
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")
+        
+        if isinstance(prompt_parts, tuple) and len(prompt_parts) == 2:
+            system_instruction, blocks = prompt_parts
+        else:
+            blocks = prompt_parts
+            system_instruction = None
 
-        if isinstance(prompt_parts, list):
-            text_blocks = [p["text"] for p in prompt_parts if p["type"] == "text"]
+        if isinstance(blocks, list):
+            text_blocks = [p["text"] for p in blocks if p["type"] == "text"]
             prompt_text = "\n\n".join(text_blocks)
         else:
-            prompt_text = str(prompt_parts)
+            prompt_text = str(blocks)
 
         images = []
-
         if image_paths:
             if not isinstance(image_paths, list):
                 image_paths = [image_paths]
             images.extend(image_paths)
-
-        elif isinstance(prompt_parts, list):
-            for part in prompt_parts:
+        elif isinstance(blocks, list):
+            for part in blocks:
                 if part["type"] == "image":
-                    images.append(part["source"]["url"])
+                    if "url" in part.get("source", {}):
+                        images.append(part["source"]["url"])
+                    elif "path" in part.get("source", {}):
+                        images.append(part["source"]["path"])
 
         content = []
-
         if self.vision:
             for img in images:
-                content.append({
-                    "type": "image",
-                    "url": img
-                })
+                content.append({"type": "image", "url": img})
 
-        content.append({
-            "type": "text",
-            "text": prompt_text
-        })
+        content.append({"type": "text", "text": prompt_text})
 
-        messages = [{
-            "role": "user",
-            "content": content
-        }]
+        messages = []
+        if system_instruction:
+            messages.append({"role": "system", "content": system_instruction})
+        messages.append({"role": "user", "content": content})
 
         print(messages)
-
 
         inputs = self.processor.apply_chat_template(
             messages,

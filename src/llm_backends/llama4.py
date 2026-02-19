@@ -1,4 +1,5 @@
 import torch
+from PIL import Image
 from transformers import AutoProcessor, Llama4ForConditionalGeneration
 from .base import BaseLLM
 
@@ -26,43 +27,43 @@ class Llama4MultimodalLLM(BaseLLM):
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")
 
-        if isinstance(prompt_parts, list):
-            text_blocks = [p["text"] for p in prompt_parts if p["type"] == "text"]
-            prompt_text = "\n\n".join(text_blocks)
+        if isinstance(prompt_parts, tuple) and len(prompt_parts) == 2:
+            instruction, blocks = prompt_parts
+            system_instruction = instruction
         else:
-            prompt_text = str(prompt_parts)
+            blocks = prompt_parts
+            system_instruction = None
+
+        if isinstance(blocks, list):
+            text_blocks = [p["text"] for p in blocks if p["type"] == "text"]
+            user_text = "\n\n".join(text_blocks)
+        else:
+            user_text = str(blocks)
 
         images = []
-
         if image_paths:
             if not isinstance(image_paths, list):
                 image_paths = [image_paths]
-            images.extend(image_paths)
-
-        elif isinstance(prompt_parts, list):
-            for part in prompt_parts:
-                if part["type"] == "image":
-                    images.append(part["source"]["url"])
+            for img_path in image_paths:
+                images.append(Image.open(img_path))
+        else:
+            if isinstance(blocks, list):
+                for part in blocks:
+                    if part["type"] == "image":
+                        if "url" in part.get("source", {}):
+                            images.append(part["source"]["url"])
+                        elif "path" in part.get("source", {}):
+                            images.append(Image.open(part["source"]["path"]))
 
         content = []
-
         for img in images:
-            content.append({
-                "type": "image",
-                "url": img
-            })
+            content.append({"type": "image", "url": img} if isinstance(img, str) else {"type": "image", "image": img})
+        content.append({"type": "text", "text": user_text})
 
-        content.append({
-            "type": "text",
-            "text": prompt_text
-        })
-
-        messages = [{
-            "role": "user",
-            "content": content
-        }]
-
-        print(messages)
+        messages = []
+        if system_instruction:
+            messages.append({"role": "system", "content": system_instruction})
+        messages.append({"role": "user", "content": content})
 
         inputs = self.processor.apply_chat_template(
             messages,

@@ -10,21 +10,38 @@ class LLMClosenessEvaluator:
 
     def score(self, pred: str, truth: str) -> float:
         prompt = f"""
-How would you rank the similarity between the following two answers based on a scale from 0 to 10?
+You are an expert evaluator.
 
-Answer 1:
-{pred}
+Your task is to score how close the PREDICTED answer is to the GROUND TRUTH answer.
 
-Answer 2:
-{truth}
+Evaluate strictly based on factual correctness and completeness.
 
-Scoring Criteria:
-        - 10: The prediction is factually identical to the ground truth.
-        - 0: The prediction is completely wrong or irrelevant.
-        - Use intermediate numbers for partially correct answers.
+PREDICTED ANSWER:
+\"\"\"{pred}\"\"\"
 
-        Output ONLY a single number between 0 and 10.
+GROUND TRUTH:
+\"\"\"{truth}\"\"\"
+
+Scoring Rules (0-10 scale):
+
+10 = Factually identical. Same meaning, no missing or incorrect information.
+9  = Same meaning, extremely minor wording differences only.
+7-8 = Mostly correct, but missing small details OR contains minor inaccuracies.
+4-6 = Partially correct. Contains correct elements but important details are missing or incorrect.
+1-3 = Mostly incorrect. Only small fragments are correct.
+0  = Completely wrong, contradictory, or irrelevant.
+
+Important:
+- Do NOT be generous.
+- Penalize missing information.
+- Penalize incorrect facts.
+- Do NOT explain your reasoning.
+- Output ONLY a single number between 0 and 10.
+- Output nothing else.
+
+Score:
 """
+
 
         raw = self.llm.generate(prompt)
 

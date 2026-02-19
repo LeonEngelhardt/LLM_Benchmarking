@@ -18,12 +18,12 @@ def build_prompt_parts(target_row, example_rows, mode="one_shot"):
 
     instruction = (
         f"You are an expert in {domain}.\n"
-        "Solve the following question step-by-step.\n"
+        "Solve the following question step-by-step but reason internally.\n"
         "You must end your response with:\n"
         "Answer: [The Answer Text]\n"
-        "Do not write anything after this line."
+        "Do not output anything after this line."
     )
-    blocks.append({"type": "text", "text": instruction})
+    #blocks.append({"type": "text", "text": instruction})
 
     # Examples (only for one/two shot)
     if mode in ["one_shot", "two_shot"]:
@@ -68,7 +68,7 @@ def build_prompt_parts(target_row, example_rows, mode="one_shot"):
         })
         image_counter += 1
 
-    return blocks
+    return instruction, blocks
 
 
 
