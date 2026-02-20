@@ -1,4 +1,5 @@
 import os
+import torch
 import argparse
 from dotenv import load_dotenv
 from src.utils import load_csv, save_csv
@@ -28,6 +29,13 @@ def main():
         help="Which experiment to run"
     )
 
+    parser.add_argument(
+        "--model",
+        type=str,
+        default=None,
+        help="Run benchmark for a specific model only (default: run all models for this venv)"
+    )
+
     args = parser.parse_args()
 
 
@@ -37,7 +45,8 @@ def main():
 
     # Closeness Evaluator
     # Use Qwen as judge IF API key exists, otherwise fallback (e.g. for local testing)
-    if os.getenv("OPENROUTER_API_KEY"):
+    gpu_available = torch.cuda.is_available()
+    if gpu_available:
         print("[INFO] Using Qwen as LLM-based closeness evaluator")
 
         qwen_judge = get_llm(
@@ -54,7 +63,7 @@ def main():
 
     prompt_rewriter_llm = None
 
-    if os.getenv("OPENROUTER_API_KEY"):
+    if gpu_available:
         print("[INFO] Loading Qwen3 as Prompt Rewriter")
 
         prompt_rewriter_llm = get_llm(
@@ -63,44 +72,52 @@ def main():
         )
         prompt_rewriter_llm.load()
     else:
-        print("[INFO] No API key found -> Prompt rewriting disabled")
+        print("[INFO] No GPU available -> Prompt rewriting disabled")
 
 
     venv_name = get_active_venv()
 
     # Models to benchmark
     if venv_name == "venv_deepseek_vl2":
-            pass
-            # models_to_test = [ {"name": "deepseek-ai/deepseek-vl2", "vision": True} ]
+            models_to_test = [ {"name": "deepseek-ai/deepseek-vl2", "vision": True}, ]
     elif venv_name == "venv_all_other_models":
         models_to_test = [
-            # Text-only
-             {"name": "gpt2", "vision": False},                                    # local HF --> only for testing
-            # {"name": "mistralai/Mistral-7B-Instruct-v0.3", "vision": False},      # HF   
-            # {"name": "deepseek-v3.2", "vision": False},                           # Deepseek API
-            # {"name": "DeepSeek-V3.1", "vision": False},
-            # {"name": "DeepSeek-V3", "vision": False},
-            # {"name": "DeepSeek-V2", "vision": False},  
-            # {"name": "Salesforce/blip-image-captioning-base", "vision": True},    # local HF --> only for testing        
-            # {"name": "llava-hf/llava-onevision-qwen2-7b-ov-hf", "vision": True}   # HF
-            # {"name": "internlm/Intern-S1", "vision": True},                       # HF
-            # {"name": "claude-opus-4-6", "vision": True},                          # Anthropic API
-            # {"name": "claude-3-opus-latest", "vision": True},                     # Anthropic API
-            # {"name": "gpt-5.2", "vision": True},                                  # OpenAI
-            # {"name": "gpt-4.1", "vision": True},                                  # OpenAI 
-            # {"name": "gpt-3.5-turbo", "vision": False},                           # OpenAI 
-            # {"name": "Qwen/Qwen3-VL-235B-A22B-Instruct", "vision": True},         # HF
-            # {"name": "Qwen/Qwen2.5-VL-32B-Instruct", "vision": True},             # HF
-            # {"name": "Qwen/Qwen2-VL-2B-Instruct", "vision": True},                # HF
-            # {"name": "meta-llama/Llama-4-Scout-17B-16E-Instruct", "vision": True},# HF local / HF inference
-            # {"name": "meta-llama/Llama-3.2-90B-Vision-Instruct", "vision": True},  
-            # {"name": "meta-llama/Llama-3.1-70B-Instruct", "vision": False},  
-            # {"name": "meta-llama/Meta-Llama-3-70B-Instruct", "vision": False},  
-            # {"name": "google/gemma-3-27b-it", "vision": True},                    # HF
-            # {"name": "google/gemma-2-9b-it", "vision": False},                    # HF
-            # {"name": "gemini-3-pro-preview", "vision": True},                     # Gemini API
-            # {"name": "gemini-2.5-pro", "vision": True},                           # Gemini API
+            {"name": "gpt2", "vision": False},                                    # local HF --> only for testing
+            {"name": "mistralai/Mistral-7B-Instruct-v0.3", "vision": False},      # HF   
+            {"name": "deepseek-v3.2", "vision": False},                           # Deepseek API
+            {"name": "DeepSeek-V3.1", "vision": False},
+            {"name": "DeepSeek-V3", "vision": False},
+            {"name": "DeepSeek-V2", "vision": False},  
+            {"name": "Salesforce/blip-image-captioning-base", "vision": True},    # local HF --> only for testing        
+            {"name": "llava-hf/llava-onevision-qwen2-7b-ov-hf", "vision": True},   # HF
+            {"name": "internlm/Intern-S1", "vision": True},                       # HF
+            {"name": "claude-opus-4-6", "vision": True},                          # Anthropic API
+            {"name": "claude-3-opus-latest", "vision": True},                     # Anthropic API
+            {"name": "gpt-5.2", "vision": True},                                  # OpenAI
+            {"name": "gpt-4.1", "vision": True},                                  # OpenAI 
+            {"name": "gpt-3.5-turbo", "vision": False},                           # OpenAI 
+            {"name": "Qwen/Qwen3-VL-235B-A22B-Instruct", "vision": True},         # HF
+            {"name": "Qwen/Qwen2.5-VL-32B-Instruct", "vision": True},             # HF
+            {"name": "Qwen/Qwen2-VL-2B-Instruct", "vision": True},                # HF
+            {"name": "meta-llama/Llama-4-Scout-17B-16E-Instruct", "vision": True},# HF local / HF inference
+            {"name": "meta-llama/Llama-3.2-90B-Vision-Instruct", "vision": True},  
+            {"name": "meta-llama/Llama-3.1-70B-Instruct", "vision": False},  
+            {"name": "meta-llama/Meta-Llama-3-70B-Instruct", "vision": False},  
+            {"name": "google/gemma-3-27b-it", "vision": True},                    # HF
+            {"name": "google/gemma-2-9b-it", "vision": False},                    # HF
+            {"name": "gemini-3-pro-preview", "vision": True},                     # Gemini API
+            {"name": "gemini-2.5-pro", "vision": True},                           # Gemini API
         ]
+
+    # only add models that where explicitly given via args
+    if args.model:
+        models_to_test = [m for m in models_to_test if m["name"] == args.model]
+        if not models_to_test:
+            print(f"[WARNING] Model '{args.model}' not found in this venv -> Cancelled")
+            return
+    else:
+        print("[INFO] No model specified via arguments, so all models of the current venv will be run!")
+
 
     # Benchmarking loop
     for model_info in models_to_test:

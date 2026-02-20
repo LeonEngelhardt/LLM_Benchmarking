@@ -31,6 +31,11 @@ python -m src.main --experiment two-shot
 ## Only Learning from Experience:
 python -m src.main --experiment lfe
 
+## It is also possible to only run a single, specified model
+# just add the argument: --model gpt2    --> if you would like to test only gpt2
+python -m src.main --model gpt2
+
+
 
 ## running the framework on a cluster:
 # create two virtual environments. The first one:
