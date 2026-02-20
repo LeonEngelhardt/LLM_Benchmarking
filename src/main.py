@@ -44,22 +44,38 @@ def main():
             model_name="Qwen/Qwen3-VL-235B-A22B-Instruct",
             vision=False,
         )
+        qwen_judge.load()
+
         closeness_eval = LLMClosenessEvaluator(qwen_judge)
     else:
         print("[INFO] Using string-based closeness evaluator (local fallback)")
         closeness_eval = ClosenessEvaluator()
 
 
+    prompt_rewriter_llm = None
+
+    if os.getenv("OPENROUTER_API_KEY"):
+        print("[INFO] Loading Qwen3 as Prompt Rewriter")
+
+        prompt_rewriter_llm = get_llm(
+            model_name="Qwen/Qwen3-VL-235B-A22B-Instruct",
+            vision=False,
+        )
+        prompt_rewriter_llm.load()
+    else:
+        print("[INFO] No API key found -> Prompt rewriting disabled")
+
 
     venv_name = get_active_venv()
 
     # Models to benchmark
     if venv_name == "venv_deepseek_vl2":
-            models_to_test = [ {"name": "deepseek-ai/deepseek-vl2", "vision": True} ]
+            pass
+            # models_to_test = [ {"name": "deepseek-ai/deepseek-vl2", "vision": True} ]
     elif venv_name == "venv_all_other_models":
         models_to_test = [
             # Text-only
-            # {"name": "gpt2", "vision": False},                                    # local HF --> only for testing
+             {"name": "gpt2", "vision": False},                                    # local HF --> only for testing
             # {"name": "mistralai/Mistral-7B-Instruct-v0.3", "vision": False},      # HF   
             # {"name": "deepseek-v3.2", "vision": False},                           # Deepseek API
             # {"name": "DeepSeek-V3.1", "vision": False},
@@ -119,12 +135,18 @@ def main():
         )
         llm.load()
 
+
+        #active_prompt_rewriter = None
+        #if not vision_enabled:
+        #    active_prompt_rewriter = prompt_rewriter_llm
+
         runner = BenchmarkRunner(
             df=df,
             llm=llm,
             evaluator=strict_match,
             closeness_evaluator=closeness_eval,
-            vision=vision_enabled
+            vision=vision_enabled,
+            prompt_rewriter_llm=prompt_rewriter_llm #active_prompt_rewriter
         )
 
         # One-Shot

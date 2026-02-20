@@ -10,7 +10,6 @@ class Qwen3VLLLM(BaseLLM):
         self.loaded = False
 
     def load(self):
-        pass
         self.processor = AutoProcessor.from_pretrained(
             self.model_name,
             trust_remote_code=True
@@ -27,12 +26,24 @@ class Qwen3VLLLM(BaseLLM):
         self.loaded = True
 
     def generate(self, prompt_parts, image_paths=None, max_new_tokens=256):
-
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")
-        
+
+        if isinstance(prompt_parts, str):
+            prompt_parts = (
+                "You are a helpful assistant.",
+                [{"type": "text", "text": prompt_parts}]
+            )
+
         if not isinstance(prompt_parts, tuple) or len(prompt_parts) != 2:
-            raise ValueError("prompt_parts must be a tuple: (instruction, blocks)")
+            raise ValueError("prompt_parts must be tuple or string.")
+
+
+        #if not self.loaded:
+        #    raise RuntimeError("Model not loaded. Call `load()` first.")
+        #
+        #if not isinstance(prompt_parts, tuple) or len(prompt_parts) != 2:
+        #    raise ValueError("prompt_parts must be a tuple: (instruction, blocks)")
 
         instruction, blocks = prompt_parts
 

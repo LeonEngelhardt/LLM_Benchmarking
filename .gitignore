@@ -18,4 +18,8 @@ results
 .vscode/
 *.log
 
+external/#
+external/falls
+external/kein
+external/noch
 external/

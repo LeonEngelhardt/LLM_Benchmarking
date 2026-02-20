@@ -6,12 +6,13 @@ from src.utils import normalize_image_path
 from transformers import AutoTokenizer
 
 class BenchmarkRunner:
-    def __init__(self, df: pd.DataFrame, llm, evaluator=strict_match, closeness_evaluator=None, vision=False):
+    def __init__(self, df: pd.DataFrame, llm, evaluator=strict_match, closeness_evaluator=None, vision=False, prompt_rewriter_llm=None):
         self.df = df
         self.llm = llm
         self.evaluator = evaluator
         self.closeness_evaluator = closeness_evaluator
         self.vision = vision
+        self.prompt_rewriter_llm = prompt_rewriter_llm
         self.tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
 
         self.df_examples = df[df['is_added'].fillna(False) == True].reset_index(drop=True)
@@ -275,37 +276,59 @@ class BenchmarkRunner:
     
 
     def check_token_length(self, prompt_parts):
-        prompt_text = " ".join([part['text'] for part in prompt_parts if 'text' in part])
+
+        if isinstance(prompt_parts, tuple):
+            instruction, blocks = prompt_parts
+        else:
+            return prompt_parts
+
+        prompt_text = instruction + "\n\n"
+        prompt_text += "\n\n".join(
+            [part["text"] for part in blocks if part["type"] == "text"]
+        )
+
         tokens = self.tokenizer.encode(prompt_text)
 
-        if len(tokens) > 4096:
-            print(f"Prompt exceeds 4096 tokens, thus Qwen3 will be used to shorten it!")
-            prompt_parts = self.shorten_prompt_with_qwen3(prompt_parts)
-        
+        print("NUMBER OF TOKENS: ", len(tokens))
+
+        if len(tokens) > 4096 and self.prompt_rewriter_llm:
+            print(f"[INFO] Prompt too long ({len(tokens)} tokens). Using Qwen3 to shorten.")
+            return self.shorten_prompt_with_qwen3(instruction, blocks)
+
         return prompt_parts
+
     
 
-    def shorten_prompt_with_qwen3(self, prompt_parts):
-        print("Using Qwen3 to shorten the prompt to fit within the 4096 token limit...")
+    def shorten_prompt_with_qwen3(self, instruction, blocks):
 
-        prompt_text = " ".join([part['text'] for part in prompt_parts if 'text' in part])
+        full_text = instruction + "\n\n"
+        full_text += "\n\n".join(
+            [part["text"] for part in blocks if part["type"] == "text"]
+        )
 
-        qwen3_prompt = f"""
-        You are a highly skilled assistant trained to shorten and summarize large chunks of text while keeping the essential meaning intact.
-        Your task is to reduce the following text to fit within a 4096-token limit without losing important context or key details.
-        Keep the structure intact, and prioritize shortening less important parts while preserving critical roles such as <|User|>, <|Assistant|>, and any system instructions.
+        rewrite_instruction = (
+            "You are an expert prompt compressor.\n"
+            "Shorten the following prompt so it fits within 4096 tokens.\n"
+            "Preserve structure and the final question.\n"
+            "Do not add explanations.\n"
+            "Return ONLY the shortened prompt."
+        )
 
-        If the text has any structured format (such as JSON or a similar format), keep the format intact, and ensure no data or key structural elements are lost.
+        rewrite_blocks = [{
+            "type": "text",
+            "text": full_text
+        }]
 
-        Here is the text you need to shorten:
-        "{prompt_text}"
+        shortened = self.prompt_rewriter_llm.generate(
+            (rewrite_instruction, rewrite_blocks),
+            max_new_tokens=1024
+        )
 
-        Shortened text:
-        """
+        return (instruction, [{
+            "type": "text",
+            "text": shortened
+        }])
 
-        shortened_prompt = self.closeness_evaluator.llm.generate(qwen3_prompt)
-
-        return [{"type": "text", "text": shortened_prompt}]
 
 
 
