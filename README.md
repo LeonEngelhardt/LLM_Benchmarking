@@ -14,30 +14,10 @@ The evaluation includes the following criterias:
 ## Installation
 
 ```bash
-pip install -r requirements.txt
+# running the framework on a cluster:
 
+# !! Log in into the cluster FIRST !! see [https://wiki.bwhpc.de/e/BwUniCluster2.0](https://wiki.bwhpc.de/e/BwUniCluster3.0)
 
-## Running the experiments
-
-## Run all experiments:
-python -m src.main
-
-## Only One-Shot:
-python -m src.main --experiment one-shot
-
-## Only Two-Shot:
-python -m src.main --experiment two-shot
-
-## Only Learning from Experience:
-python -m src.main --experiment lfe
-
-## It is also possible to only run a single, specified model
-# just add the argument: --model gpt2    --> if you would like to test only gpt2
-python -m src.main --model gpt2
-
-
-
-## running the framework on a cluster:
 # create two virtual environments. The first one:
 python -m venv venv_all_other_models
 
@@ -50,15 +30,37 @@ pip istall requirements.txt
 # deactivate the first venv to create the second one:
 deactivate
 
-# create the second one:
+# ONLY FOR  deepseek_v2 !!!create the second one (second environement) :
 python -m venv venv_only_deepseek_vl2
 
-# activate it
+# ONLY FOR  deepseek_v2 !!! activate it
 venv_only_deepseek_vl2\Scripts\activate
 
-# change path to repo deepseek folder
+# ONLY FOR  deepseek_v2 !!! change path to repo deepseek folder
 cd external
 cd deepseek-vl2
 
 # install all needed modules for it: 
 pip install -e .
+
+## Running the experiments
+
+## Run all experiments (all models):
+python -m src.main
+
+## Only One-Shot (one model):
+python -m src.main --model gpt2 -experiment one-shot
+
+## Only Two-Shot(one model):
+python -m src.main --model gpt2 --experiment two-shot
+
+## Only Learning from Experience(one model):
+python -m src.main -model gpt2 --experiment lfe
+
+##One-Shot:  + Two-Shot: Learning from Experience:
+python -m src.main --model gpt2
+
+## It is also possible to only run a single, specified model
+# just add the argument: --model gpt2    --> if you would like to test only gpt2
+python -m src.main --model gpt2
+
