@@ -11,6 +11,7 @@ class Llama3_3LLM(BaseLLM):
 
     def load(self):
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.tokenizer.pad_token = self.tokenizer.eos_token
         self.model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
             torch_dtype=torch.bfloat16 if self.device.startswith("cuda") else torch.float32,
