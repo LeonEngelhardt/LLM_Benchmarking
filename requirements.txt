@@ -17,7 +17,7 @@ openrouter
 qwen
 google-genai
 mistral_inference
-qwen_vl_util
+qwen_vl_utils
 
 
 #vllm --upgrade

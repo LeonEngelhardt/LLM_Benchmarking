@@ -3,8 +3,23 @@ from PIL import Image
 import requests
 from io import BytesIO
 
-def load_csv(path: str):
-    return pd.read_csv(path)
+def load_csv(path):
+    try:
+        # sep=None forces Pandas to automatically detect if the file uses ',' or ';'
+        return pd.read_csv(
+            path, 
+            sep=None, 
+            engine='python'
+        )
+    except UnicodeDecodeError:
+        # If it's saved in Excel's weird Windows format, catch it and load it anyway
+        print(f"  -> [WARNING] Encoding issue detected in {path}. Using Windows-1252 fallback.")
+        return pd.read_csv(
+            path, 
+            sep=None, 
+            engine='python',
+            encoding='windows-1252'
+        )
 
 def save_csv(df, path: str):
     df.to_csv(path, index=False)

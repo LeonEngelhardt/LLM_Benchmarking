@@ -1,9 +1,10 @@
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoModelForCausalLM, AutoTokenizer
 from .base import BaseLLM
 
-class Llama3LLM(BaseLLM):
+class Llama3_3LLM(BaseLLM):
     def __init__(self, model_name, device="cuda" if torch.cuda.is_available() else "cpu"):
+        # Explicitly set vision=False since 3.3 is text-only
         super().__init__(model_name, vision=False)
         self.device = device
         self.loaded = False
@@ -12,8 +13,8 @@ class Llama3LLM(BaseLLM):
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self.model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
-            device_map="auto" if self.device.startswith("cuda") else None,
             torch_dtype=torch.bfloat16 if self.device.startswith("cuda") else torch.float32,
+            device_map="auto" if self.device.startswith("cuda") else None
         )
         self.model.eval()
         self.loaded = True
@@ -22,7 +23,7 @@ class Llama3LLM(BaseLLM):
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")
 
-       
+        
         system_instruction, blocks = prompt_parts
 
         
@@ -31,16 +32,18 @@ class Llama3LLM(BaseLLM):
         else:
             user_text = str(blocks)
 
-    
+        
         messages = []
+        
         if system_instruction:
             messages.append({"role": "system", "content": system_instruction})
+            
         messages.append({"role": "user", "content": user_text})
 
         
         input_ids = self.tokenizer.apply_chat_template(
             messages,
-            add_generation_prompt=True, 
+            add_generation_prompt=True,
             return_tensors="pt"
         ).to(self.model.device)
 

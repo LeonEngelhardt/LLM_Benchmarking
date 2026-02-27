@@ -11,7 +11,7 @@ from .gemini3 import Gemini3ProLLM
 from .intern_s1 import InternS1LLM
 from .llava import LlavaOneVision7BLLM
 from .llama4 import Llama4MultimodalLLM
-from .llama3_2 import Llama3_2VisionLLM
+from .llama3_3 import Llama3_3LLM
 from .llama3_1 import Llama3_1LLM
 from .llama3 import Llama3LLM
 from .gemma3 import Gemma3MultimodalLLM
@@ -57,8 +57,8 @@ def get_llm(model_name: str, vision: bool, device="cpu", hf_token=None):
     if "llama-4-scout-17b-16e-instruct" in name:
         return Llama4MultimodalLLM(model_name, device)
     
-    if "llama-3.2-90b-vision-instruct" in name:
-        return Llama3_2VisionLLM(model_name, device)
+    if "llama-3.3-70b-instruct" in name:
+        return Llama3_3LLM(model_name, device)
     
     if "llama-3.1-70b-instruct" in name:
         return Llama3_1LLM(model_name, device)

@@ -22,35 +22,49 @@ class Llama3_1LLM(BaseLLM):
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")
 
-        if isinstance(prompt_parts, tuple) and len(prompt_parts) == 2:
-            system_instruction, blocks = prompt_parts
-        else:
-            system_instruction = None
-            blocks = prompt_parts
+        
+        system_instruction, blocks = prompt_parts
 
+        
         if isinstance(blocks, list):
             user_text = "\n\n".join([p["text"] for p in blocks if p["type"] == "text"])
         else:
             user_text = str(blocks)
 
-        prompt = ""
+        
+        messages = []
+        
         if system_instruction:
-            prompt += f"System Instruction: {system_instruction}\n\n"
-        prompt += f"User: {user_text}\n"
+            messages.append({"role": "system", "content": system_instruction})
+            
+        messages.append({"role": "user", "content": user_text})
 
-        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+        
+        input_ids = self.tokenizer.apply_chat_template(
+            messages,
+            add_generation_prompt=True,
+            return_tensors="pt"
+        ).to(self.model.device)
+
+        
+        terminators = [
+            self.tokenizer.eos_token_id,
+            self.tokenizer.convert_tokens_to_ids("<|eot_id|>")
+        ]
 
         with torch.no_grad():
             outputs = self.model.generate(
-                **inputs,
+                input_ids,
                 max_new_tokens=max_new_tokens,
                 temperature=temperature,
-                do_sample=do_sample
+                do_sample=do_sample,
+                eos_token_id=terminators,
+                pad_token_id=self.tokenizer.eos_token_id
             )
 
-        generated_text = self.tokenizer.decode(outputs[0][inputs["input_ids"].shape[-1]:], skip_special_tokens=True)
+        generated_tokens = outputs[0][input_ids.shape[-1]:]
+        response = self.tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()
 
-        if "Answer:" in generated_text:
-            return generated_text.split("Answer:")[-1].strip()
-
-        return generated_text.strip()
+        if "Answer:" in response:
+            return response.split("Answer:")[-1].strip()
+        return response

@@ -1,6 +1,8 @@
 import os
 import torch
 import argparse
+import glob
+import pandas as pd
 from dotenv import load_dotenv
 from src.utils import load_csv, save_csv
 from src.benchmark import BenchmarkRunner
@@ -18,7 +20,6 @@ def get_active_venv():
 
 
 def main():
-
     parser = argparse.ArgumentParser(description="LLM Benchmark Framework")
 
     parser.add_argument(
@@ -38,13 +39,30 @@ def main():
 
     args = parser.parse_args()
 
-
     # Setup
     load_dotenv()
-    df_all = load_csv("data/dataset.csv")
+
+    # 1. Find all CSV files inside the data folder
+    all_files = glob.glob("data/*.csv")
+
+    # 2. Loop through them, load them, and add them to a list
+    df_list = []
+    for file in all_files:
+        print(f"Loading: {file}")
+        df = load_csv(file)  # Using your existing load_csv function
+        df_list.append(df)
+
+    # 3. Combine all the individual datasets into one massive dataframe
+    if df_list:
+        df_all = pd.concat(df_list, ignore_index=True)
+        print(f"Successfully combined {len(all_files)} files!")
+    else:
+        # We use a print here instead of raise to keep the script running if you want to debug
+        print("[ERROR] No CSV files found in data/ directory!")
+        return 
 
     # Closeness Evaluator
-    # Use Qwen as judge IF API key exists, otherwise fallback (e.g. for local testing)
+    # Use Qwen as judge IF API key exists, otherwise fallback
     gpu_available = torch.cuda.is_available()
     if gpu_available:
         print("[INFO] Using Qwen as LLM-based closeness evaluator")
@@ -100,7 +118,7 @@ def main():
             {"name": "Qwen/Qwen2.5-VL-32B-Instruct", "vision": True},             # HF
             {"name": "Qwen/Qwen2-VL-2B-Instruct", "vision": True},                # HF
             {"name": "meta-llama/Llama-4-Scout-17B-16E-Instruct", "vision": True},# HF local / HF inference
-            {"name": "meta-llama/Llama-3.2-90B-Vision-Instruct", "vision": True},  
+            {"name": "meta-llama/Llama-3.3-70B-Instruct", "vision": False},  
             {"name": "meta-llama/Llama-3.1-70B-Instruct", "vision": False},  
             {"name": "meta-llama/Meta-Llama-3-70B-Instruct", "vision": False},  
             {"name": "google/gemma-3-27b-it", "vision": True},                    # HF
