@@ -23,5 +23,7 @@ external/falls
 external/kein
 external/noch
 
-
 data/dataset_leon save.csv
+
+*.out
+slurm/*.out
