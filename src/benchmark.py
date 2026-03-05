@@ -91,8 +91,8 @@ class BenchmarkRunner:
                     if target_img:
                         image_paths.append(target_img)
 
-                #raw_answer = self.llm.generate(prompt_parts, image_paths=image_paths if self.vision else None)
-                raw_answer = self.llm.generate(prompt_parts)
+                raw_answer = self.llm.generate(prompt_parts, image_paths=image_paths if self.vision else None)
+                #raw_answer = self.llm.generate(prompt_parts)
 
                 if not raw_answer:
                     raw_answer = "[No answer]"
@@ -142,10 +142,8 @@ class BenchmarkRunner:
                 if target_img:
                     image_paths.append(target_img)
 
-            #raw_answer = self.llm.generate(
-            #    prompt_parts,
-            #    image_paths=image_paths if self.vision else None)
-            raw_answer = self.llm.generate(prompt_parts)
+            raw_answer = self.llm.generate(prompt_parts, image_paths=image_paths if self.vision else None)
+            #raw_answer = self.llm.generate(prompt_parts)
 
 
             if not raw_answer:

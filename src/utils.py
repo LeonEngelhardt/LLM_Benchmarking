@@ -25,11 +25,17 @@ def save_csv(df, path: str):
     df.to_csv(path, index=False)
 
 def normalize_image_path(path: str) -> str:
+    GITHUB_RAW_BASE = "https://raw.githubusercontent.com/LeonEngelhardt/LLM_Benchmarking/main/"
+
     if path.startswith("https://github.com/") and "/blob/" in path:
         return path.replace(
             "https://github.com/",
             "https://raw.githubusercontent.com/"
         ).replace("/blob/", "/")
+
+    if path.startswith("data/") or path.startswith("/data/"):
+        return GITHUB_RAW_BASE + path.lstrip("/")
+
     return path
 
 def load_image(image_path: str) -> Image.Image:
