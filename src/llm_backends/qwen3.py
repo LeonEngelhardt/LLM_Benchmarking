@@ -1,3 +1,4 @@
+import os
 import torch
 from transformers import Qwen3VLMoeForConditionalGeneration, AutoProcessor
 from .base import BaseLLM
@@ -8,8 +9,29 @@ class Qwen3VLLLM(BaseLLM):
         super().__init__(model_name, vision)
         self.device = device
         self.loaded = False
+        self.cache_dir = os.environ.get("HF_HOME", os.path.expanduser("~/.cache/huggingface"))
 
+    
     def load(self):
+        self.processor = AutoProcessor.from_pretrained(
+            self.model_name,
+            trust_remote_code=True,
+            cache_dir=self.cache_dir
+        )
+
+        self.model = Qwen3VLMoeForConditionalGeneration.from_pretrained(
+            self.model_name,
+            device_map="auto" if self.device.startswith("cuda") else None,
+            torch_dtype=torch.bfloat16 if self.device.startswith("cuda") else torch.float32,
+            trust_remote_code=True,
+            cache_dir=self.cache_dir
+        )
+
+        self.model.eval()
+        self.loaded = True
+    
+    
+    """def load(self):
         self.processor = AutoProcessor.from_pretrained(
             self.model_name,
             trust_remote_code=True
@@ -23,7 +45,7 @@ class Qwen3VLLLM(BaseLLM):
         )
 
         self.model.eval()
-        self.loaded = True
+        self.loaded = True"""
 
     def generate(self, prompt_parts, image_paths=None, max_new_tokens=256):
         if not self.loaded:

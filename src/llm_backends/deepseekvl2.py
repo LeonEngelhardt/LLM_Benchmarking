@@ -1,3 +1,4 @@
+import os
 import torch
 from transformers import AutoModelForCausalLM
 from .base import BaseLLM
@@ -16,8 +17,43 @@ class DeepSeekVLV2LLM(BaseLLM):
         self.processor = None
         self.tokenizer = None
         self.model = None
+        self.cache_dir = os.environ.get("HF_HOME", os.path.expanduser("~/.cache/huggingface"))
 
     def ensure_deepseek_vl2_installed(self):
+        try:
+            import deepseek_vl2
+        except ModuleNotFoundError:
+            import sys, subprocess
+            subprocess.check_call([
+                sys.executable, "-m", "pip", "install", "-e",
+                "git+https://github.com/deepseek-ai/deepseek-vl2.git#egg=deepseek-vl2"
+            ])
+        finally:
+            global DeepseekVLV2Processor
+            from deepseek_vl2.models import DeepseekVLV2Processor
+
+    def load(self):
+        self.ensure_deepseek_vl2_installed()
+        from deepseek_vl2.models import DeepseekVLV2Processor
+
+        self.processor = DeepseekVLV2Processor.from_pretrained(
+            self.model_name,
+            cache_dir=self.cache_dir
+        )
+        self.tokenizer = self.processor.tokenizer
+
+        dtype = torch.bfloat16 if self.device.startswith("cuda") else torch.float32
+
+        self.model = AutoModelForCausalLM.from_pretrained(
+            self.model_name,
+            trust_remote_code=True,
+            cache_dir=self.cache_dir
+        ).to(dtype).to(self.device).eval()
+
+        self.loaded = True
+
+
+    """def ensure_deepseek_vl2_installed(self):
         try:
             import deepseek_vl2
         except ModuleNotFoundError:
@@ -45,7 +81,7 @@ class DeepSeekVLV2LLM(BaseLLM):
             trust_remote_code=True
         ).to(dtype).to(self.device).eval()
 
-        self.loaded = True
+        self.loaded = True"""
 
     def _load_images(self, image_paths):
         pil_images = []
