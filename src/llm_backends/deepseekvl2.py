@@ -17,7 +17,12 @@ class DeepSeekVLV2LLM(BaseLLM):
         self.processor = None
         self.tokenizer = None
         self.model = None
-        self.cache_dir = os.environ.get("HF_HOME", os.path.expanduser("~/.cache/huggingface"))
+        
+        #self.cache_dir = os.environ.get("HF_HOME", os.path.expanduser("~/.cache/huggingface"))
+        self.cache_dir = os.path.join(
+            os.environ.get("HF_HOME", os.path.expanduser("~/.cache/huggingface")),
+            "hub"
+        )
 
     def ensure_deepseek_vl2_installed(self):
         try:

@@ -10,8 +10,11 @@ class InternS1LLM(BaseLLM):
         self.device = device
         self.loaded = False
 
-        self.cache_dir = os.environ.get("HF_HOME", os.path.expanduser("~/.cache/huggingface"))
-
+        #self.cache_dir = os.environ.get("HF_HOME", os.path.expanduser("~/.cache/huggingface"))
+        self.cache_dir = os.path.join(
+            os.environ.get("HF_HOME", os.path.expanduser("~/.cache/huggingface")),
+            "hub"
+        )
     
     def load(self):
         self.processor = AutoProcessor.from_pretrained(
