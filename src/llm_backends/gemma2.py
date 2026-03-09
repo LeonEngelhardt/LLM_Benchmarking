@@ -37,11 +37,9 @@ class Gemma2LLM(BaseLLM):
             {"role": "user", "content": user_text}
         ]
 
-        print(messages)
+        prompt = self.tokenizer.apply_chat_template(messages, return_tensors="pt", return_dict=True).to(self.model.device)
 
-        """prompt = self.tokenizer.apply_chat_template(messages, return_tensors="pt", return_dict=True).to(self.model.device)
-
-        with torch.no_grad():
+        with torch.inference_mode():
             outputs = self.model.generate(
                 **prompt,
                 max_new_tokens=max_new_tokens,
@@ -53,4 +51,4 @@ class Gemma2LLM(BaseLLM):
 
         if "Answer:" in generated_text:
             return generated_text.split("Answer:")[-1].strip()
-        return generated_text.strip()"""
+        return generated_text.strip()

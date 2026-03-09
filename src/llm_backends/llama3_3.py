@@ -54,7 +54,7 @@ class Llama3_3LLM(BaseLLM):
             self.tokenizer.convert_tokens_to_ids("<|eot_id|>")
         ]
 
-        with torch.no_grad():
+        with torch.inference_mode():
             outputs = self.model.generate(
                 input_ids,
                 max_new_tokens=max_new_tokens,

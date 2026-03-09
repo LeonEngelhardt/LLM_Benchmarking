@@ -64,7 +64,6 @@ class LlavaOneVision7BLLM(BaseLLM):
             messages.append({"role": "system", "content": system_instruction})
         messages.append({"role": "user", "content": content})
 
-        print(messages)
 
         inputs = self.processor.apply_chat_template(
             messages,
@@ -74,7 +73,7 @@ class LlavaOneVision7BLLM(BaseLLM):
             return_tensors="pt"
         ).to(self.device)
 
-        with torch.no_grad():
+        with torch.inference_mode():
             outputs = self.model.generate(
                 **inputs,
                 max_new_tokens=max_new_tokens,

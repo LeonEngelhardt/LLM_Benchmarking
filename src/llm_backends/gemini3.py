@@ -62,7 +62,6 @@ class Gemini3ProLLM(BaseLLM):
                 if image_part:
                     contents.append(image_part)
 
-        print(contents)
 
         response = self.client.models.generate_content(
             model=self.model_name,

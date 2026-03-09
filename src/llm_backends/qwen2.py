@@ -84,7 +84,7 @@ class Qwen2VLLLM(BaseLLM):
             return_tensors="pt"
         ).to(self.model.device)
 
-        with torch.no_grad():
+        with torch.inference_mode():
             generated_ids = self.model.generate(
                 **inputs,
                 max_new_tokens=max_new_tokens
