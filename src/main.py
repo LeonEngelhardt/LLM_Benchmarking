@@ -75,6 +75,23 @@ def main():
 
     if gpu_available and venv_name != "venv_only_deepseek_vl2":
         print("[INFO] Loading Qwen3 once (Judge + Prompt Rewriter)")
+        
+        from src.llm_backends.qwen3 import Qwen3VLLLM
+
+        qwen_shared = get_llm(
+            model_name="Qwen/Qwen3-4B-Instruct-2507",
+            vision=False,
+        )
+        qwen_shared.load()
+
+        closeness_eval = LLMClosenessEvaluator(qwen_shared)
+        prompt_rewriter_llm = qwen_shared
+    else:
+        print("[INFO] Using string-based closeness evaluator (local fallback)")
+        closeness_eval = ClosenessEvaluator()
+        prompt_rewriter_llm = None
+    """if gpu_available and venv_name != "venv_only_deepseek_vl2":
+        print("[INFO] Loading Qwen3 once (Judge + Prompt Rewriter)")
 
         qwen_shared = get_llm(
             model_name="Qwen/Qwen3-4B-Instruct-2507", #Qwen/Qwen3-VL-235B-A22B-Instruct
@@ -88,7 +105,7 @@ def main():
     else:
         print("[INFO] Using string-based closeness evaluator (local fallback)")
         closeness_eval = ClosenessEvaluator()
-        prompt_rewriter_llm = None
+        prompt_rewriter_llm = None"""
 
 
     # Models to benchmark
