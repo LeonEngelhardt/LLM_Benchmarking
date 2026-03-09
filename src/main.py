@@ -71,16 +71,17 @@ def main():
     closeness_eval = None
     prompt_rewriter_llm = None
 
-    if gpu_available:
+    venv_name = get_active_venv()
+
+    if gpu_available and venv_name != "venv_only_deepseek_vl2":
         print("[INFO] Loading Qwen3 once (Judge + Prompt Rewriter)")
 
         qwen_shared = get_llm(
-            model_name="Qwen/Qwen3-VL-235B-A22B-Instruct",
+            model_name="Qwen/Qwen3-4B-Instruct-2507", #Qwen/Qwen3-VL-235B-A22B-Instruct
             vision=False,
         )
         qwen_shared.load()
 
-        # Beide nutzen dasselbe Modellobjekt
         closeness_eval = LLMClosenessEvaluator(qwen_shared)
         prompt_rewriter_llm = qwen_shared
 
@@ -89,37 +90,6 @@ def main():
         closeness_eval = ClosenessEvaluator()
         prompt_rewriter_llm = None
 
-    """gpu_available = torch.cuda.is_available()
-    if gpu_available:
-        print("[INFO] Using Qwen as LLM-based closeness evaluator")
-
-        qwen_judge = get_llm(
-            model_name="Qwen/Qwen3-VL-235B-A22B-Instruct",
-            vision=False,
-        )
-        qwen_judge.load()
-
-        closeness_eval = LLMClosenessEvaluator(qwen_judge)
-    else:
-        print("[INFO] Using string-based closeness evaluator (local fallback)")
-        closeness_eval = ClosenessEvaluator()
-
-
-    prompt_rewriter_llm = None
-
-    if gpu_available:
-        print("[INFO] Loading Qwen3 as Prompt Rewriter")
-
-        prompt_rewriter_llm = get_llm(
-            model_name="Qwen/Qwen3-VL-235B-A22B-Instruct",
-            vision=False,
-        )
-        prompt_rewriter_llm.load()
-    else:
-        print("[INFO] No GPU available -> Prompt rewriting disabled")"""
-
-
-    venv_name = get_active_venv()
 
     # Models to benchmark
     if venv_name == "venv_only_deepseek_vl2":

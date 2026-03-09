@@ -1,6 +1,7 @@
 import os
 import torch
 from transformers import Qwen3VLMoeForConditionalGeneration, AutoProcessor
+from transformers import AutoModelForCausalLM, AutoTokenizer
 from .base import BaseLLM
 
 
@@ -23,7 +24,14 @@ class Qwen3VLLLM(BaseLLM):
             cache_dir=self.cache_dir
         )
 
-        self.model = Qwen3VLMoeForConditionalGeneration.from_pretrained(
+        """self.model = Qwen3VLMoeForConditionalGeneration.from_pretrained(
+            self.model_name,
+            device_map="auto" if self.device.startswith("cuda") else None,
+            torch_dtype=torch.bfloat16 if self.device.startswith("cuda") else torch.float32,
+            trust_remote_code=True,
+            cache_dir=self.cache_dir
+        )"""
+        self.model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
             device_map="auto" if self.device.startswith("cuda") else None,
             torch_dtype=torch.bfloat16 if self.device.startswith("cuda") else torch.float32,
@@ -34,22 +42,6 @@ class Qwen3VLLLM(BaseLLM):
         self.model.eval()
         self.loaded = True
     
-    
-    """def load(self):
-        self.processor = AutoProcessor.from_pretrained(
-            self.model_name,
-            trust_remote_code=True
-        )
-
-        self.model = Qwen3VLMoeForConditionalGeneration.from_pretrained(
-            self.model_name,
-            device_map="auto" if self.device.startswith("cuda") else None,
-            torch_dtype=torch.bfloat16 if self.device.startswith("cuda") else torch.float32,
-            trust_remote_code=True
-        )
-
-        self.model.eval()
-        self.loaded = True"""
 
     def generate(self, prompt_parts, image_paths=None, max_new_tokens=256):
         if not self.loaded:
