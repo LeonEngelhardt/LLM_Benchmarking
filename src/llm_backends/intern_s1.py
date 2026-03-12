@@ -28,7 +28,8 @@ class InternS1LLM(BaseLLM):
             device_map="auto" if self.device.startswith("cuda") else None,
             torch_dtype=torch.bfloat16 if self.device.startswith("cuda") else torch.float32,
             trust_remote_code=True,
-            cache_dir=self.cache_dir
+            cache_dir=self.cache_dir,
+            low_cpu_mem_usage=True
         )
 
         self.model.eval()

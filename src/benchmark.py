@@ -57,9 +57,18 @@ class BenchmarkRunner:
             return normalize_image_path(img)
         return None
 
+    #def _get_example_rows(self, target_row, n=None):
+    #    example_rows = self.df_examples[self.df_examples['id_original_question'] == target_row['id']] \
+    #        .sort_values('example_number').to_dict('records')
+    #    if n is not None:
+    #        return example_rows[:n]
+    #    return example_rows
     def _get_example_rows(self, target_row, n=None):
-        example_rows = self.df_examples[self.df_examples['id_original_question'] == target_row['id']] \
-            .sort_values('example_number').to_dict('records')
+        df_filtered = self.df_examples[self.df_examples['id_original_question'] == target_row['id']].copy()
+        df_filtered['example_number'] = pd.to_numeric(df_filtered['example_number'], errors='coerce')
+        
+        example_rows = df_filtered.sort_values('example_number', na_position='last').to_dict('records')
+        
         if n is not None:
             return example_rows[:n]
         return example_rows

@@ -48,8 +48,8 @@ def main():
     # 2. Loop through them, load them, and add them to a list
     df_list = []
     for file in all_files:
-        if "Najib" in file:
-            continue
+        #if "Najib" in file:
+        #    continue
         print(f"Loading: {file}")
         df = load_csv(file)  # Using your existing load_csv function
         df_list.append(df)
@@ -62,6 +62,8 @@ def main():
         # We use a print here instead of raise to keep the script running if you want to debug
         print("[ERROR] No CSV files found in data/ directory!")
         return 
+    
+    df_all = df_all.fillna("")
 
     # Closeness Evaluator
     # Use Qwen as judge IF API key exists, otherwise fallback
