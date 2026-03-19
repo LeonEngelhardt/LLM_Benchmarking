@@ -118,7 +118,7 @@ class DeepSeekVLV2LLM(BaseLLM):
         inputs_embeds = self.model.prepare_inputs_embeds(**prepare_inputs)
 
         with torch.inference_mode():
-            outputs = self.model.language_model.generate(
+            outputs = self.model.generate(
                 inputs_embeds=inputs_embeds,
                 attention_mask=prepare_inputs.attention_mask,
                 pad_token_id=self.tokenizer.eos_token_id,
