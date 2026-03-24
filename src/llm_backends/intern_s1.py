@@ -98,7 +98,8 @@ class InternS1LLM(BaseLLM):
 
         messages = []
         if system_instruction:
-            messages.append({"role": "system", "content": system_instruction})
+            #messages.append({"role": "system", "content": system_instruction})
+            {"role": "system", "content": [{"type": "text", "text": system_instruction}]}
         messages.append({"role": "user", "content": content})
 
         #print(messages)
