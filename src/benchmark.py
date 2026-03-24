@@ -31,9 +31,9 @@ class BenchmarkRunner:
             self.df_examples = self.df_examples[self.df_examples['image_path'].notna() & (self.df_examples['image_path'].str.strip() != "")].reset_index(drop=True)
             self.df_originals = self.df_originals[self.df_originals['image_path'].notna() & (self.df_originals['image_path'].str.strip() != "")].reset_index(drop=True)
 
-        print("EXXXXXAMPLES: ", self.df_examples)
-        print("OOOOOOORRRRRRRRRRIGINALES: ", self.df_originals)
-        print("TTTTTTTTTTTTTAAAAAAAAAAAARGETS: ", self.df_targets)
+        #print("EXAMPLES: ", self.df_examples)
+        #print("ORIGINALS: ", self.df_originals)
+        #print("TARGETS: ", self.df_targets)
     
     def _extract_final_answer(self, text: str) -> str:
         separator = "Answer:"

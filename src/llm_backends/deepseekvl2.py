@@ -17,12 +17,24 @@ class DeepSeekVLV2LLM(BaseLLM):
         self.processor = None
         self.tokenizer = None
         self.model = None
+        self.model_dtype = torch.float32
         
         #self.cache_dir = os.environ.get("HF_HOME", os.path.expanduser("~/.cache/huggingface"))
         self.cache_dir = os.path.join(
             os.environ.get("HF_HOME", os.path.expanduser("~/.cache/huggingface")),
             "hub"
         )
+
+    def _cast_model_to_runtime_dtype(self):
+        # `torch_dtype` during loading is not always enough for DeepSeek-VL2:
+        # parts of the vision stack can remain in float32, which then crashes
+        # when bfloat16 image tensors hit conv/linear layers on the cluster.
+        self.model = self.model.to(device=self.device, dtype=self.model_dtype)
+
+        for submodule_name in ("vision", "projector", "language"):
+            submodule = getattr(self.model, submodule_name, None)
+            if submodule is not None:
+                submodule.to(device=self.device, dtype=self.model_dtype)
 
     def ensure_deepseek_vl2_installed(self):
         try:
@@ -47,14 +59,16 @@ class DeepSeekVLV2LLM(BaseLLM):
         )
         self.tokenizer = self.processor.tokenizer
 
-        dtype = torch.bfloat16 if self.device.startswith("cuda") else torch.float32
+        self.model_dtype = torch.bfloat16 if self.device.startswith("cuda") else torch.float32
 
         self.model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
             trust_remote_code=True,
-            torch_dtype=torch.bfloat16,
+            torch_dtype=self.model_dtype,
             cache_dir=self.cache_dir
-        ).to(dtype).to(self.device).eval()
+        )
+        self._cast_model_to_runtime_dtype()
+        self.model.eval()
 
         self.loaded = True
 
@@ -113,7 +127,16 @@ class DeepSeekVLV2LLM(BaseLLM):
             images=pil_images,
             force_batchify=True,
             system_prompt=system_prompt
-        ).to(self.device)
+        )
+
+        # Keep every floating-point input aligned with the model precision to avoid
+        # conv/linear dtype mismatches inside the vision encoder.
+        for key, value in vars(prepare_inputs).items():
+            if torch.is_tensor(value):
+                value = value.to(self.device)
+                if torch.is_floating_point(value):
+                    value = value.to(self.model_dtype)
+                setattr(prepare_inputs, key, value)
 
         inputs_embeds = self.model.prepare_inputs_embeds(**prepare_inputs)
 

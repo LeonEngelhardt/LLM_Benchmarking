@@ -23,13 +23,22 @@ class InternS1LLM(BaseLLM):
             cache_dir=self.cache_dir
         )
 
-        self.model = AutoModelForCausalLM.from_pretrained(
+        """self.model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
             device_map="auto" if self.device.startswith("cuda") else None,
             torch_dtype=torch.bfloat16 if self.device.startswith("cuda") else torch.float32,
             trust_remote_code=True,
             cache_dir=self.cache_dir,
             low_cpu_mem_usage=True
+        )"""
+
+        self.model = AutoModelForCausalLM.from_pretrained(
+        self.model_name,
+        device_map="auto",
+        torch_dtype=torch.bfloat16,
+        trust_remote_code=True,
+        cache_dir=self.cache_dir,
+        low_cpu_mem_usage=True,
         )
 
         self.model.eval()
@@ -92,7 +101,7 @@ class InternS1LLM(BaseLLM):
             messages.append({"role": "system", "content": system_instruction})
         messages.append({"role": "user", "content": content})
 
-        print(messages)
+        #print(messages)
 
         inputs = self.processor.apply_chat_template(
             messages,
