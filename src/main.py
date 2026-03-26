@@ -123,7 +123,7 @@ def main():
             {"name": "DeepSeek-V2", "vision": False},  
             {"name": "Salesforce/blip-image-captioning-base", "vision": True},    # local HF --> only for testing        
             {"name": "llava-hf/llava-onevision-qwen2-7b-ov-hf", "vision": True},   # HF
-            {"name": "internlm/Intern-S1", "vision": True},                       # HF
+            {"name": "internlm/Intern-S1-mini", "vision": True},                  # HF
             {"name": "claude-opus-4-6", "vision": True},                          # Anthropic API
             {"name": "claude-3-opus-latest", "vision": True},                     # Anthropic API
             {"name": "gpt-5.2", "vision": True},                                  # OpenAI
@@ -176,55 +176,58 @@ def main():
             print("[WARNING] No suitable questions found -> skipping model")
             continue
 
+        
+
+        with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+            with torch.inference_mode():
+
+                # Load model via factory
+                llm = get_llm(
+                    model_name=model_name,
+                    vision=vision_enabled,
+                )
+                llm.load()
 
 
-        # Load model via factory
-        llm = get_llm(
-            model_name=model_name,
-            vision=vision_enabled,
-        )
-        llm.load()
+                #active_prompt_rewriter = None
+                #if not vision_enabled:
+                #    active_prompt_rewriter = prompt_rewriter_llm
 
+                runner = BenchmarkRunner(
+                    df=df,
+                    llm=llm,
+                    evaluator=strict_match,
+                    closeness_evaluator=closeness_eval,
+                    vision=vision_enabled,
+                    prompt_rewriter_llm=prompt_rewriter_llm #active_prompt_rewriter
+                )
 
-        #active_prompt_rewriter = None
-        #if not vision_enabled:
-        #    active_prompt_rewriter = prompt_rewriter_llm
+                # One-Shot
+                if args.experiment in ["one-shot", "all"]:
+                    print(f"--- {model_name} | One-Shot ---")
+                    one_shot_df = runner.run_one_shot()
+                    save_csv(
+                        one_shot_df,
+                        f"results/{model_name.replace('/', '_')}_one_shot.csv"
+                    )
 
-        runner = BenchmarkRunner(
-            df=df,
-            llm=llm,
-            evaluator=strict_match,
-            closeness_evaluator=closeness_eval,
-            vision=vision_enabled,
-            prompt_rewriter_llm=prompt_rewriter_llm #active_prompt_rewriter
-        )
+                # Two-Shot
+                if args.experiment in ["two-shot", "all"]:
+                    print(f"--- {model_name} | Two-Shot ---")
+                    two_shot_df = runner.run_two_shot()
+                    save_csv(
+                        two_shot_df,
+                        f"results/{model_name.replace('/', '_')}_two_shot.csv"
+                    )
 
-        # One-Shot
-        if args.experiment in ["one-shot", "all"]:
-            print(f"--- {model_name} | One-Shot ---")
-            one_shot_df = runner.run_one_shot()
-            save_csv(
-                one_shot_df,
-                f"results/{model_name.replace('/', '_')}_one_shot.csv"
-            )
-
-        # Two-Shot
-        if args.experiment in ["two-shot", "all"]:
-            print(f"--- {model_name} | Two-Shot ---")
-            two_shot_df = runner.run_two_shot()
-            save_csv(
-                two_shot_df,
-                f"results/{model_name.replace('/', '_')}_two_shot.csv"
-            )
-
-        # Learning-from-Experience
-        if args.experiment in ["lfe", "all"]:
-            print(f"--- {model_name} | Learning-from-Experience ---")
-            lfe_df = runner.run_learning_from_experience()
-            save_csv(
-                lfe_df,
-                f"results/{model_name.replace('/', '_')}_lfe.csv"
-            )
+                # Learning-from-Experience
+                if args.experiment in ["lfe", "all"]:
+                    print(f"--- {model_name} | Learning-from-Experience ---")
+                    lfe_df = runner.run_learning_from_experience()
+                    save_csv(
+                        lfe_df,
+                        f"results/{model_name.replace('/', '_')}_lfe.csv"
+                    )
 
 
 if __name__ == "__main__":

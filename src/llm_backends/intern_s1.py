@@ -34,31 +34,18 @@ class InternS1LLM(BaseLLM):
 
         self.model = AutoModelForCausalLM.from_pretrained(
         self.model_name,
-        device_map="auto",
+        device_map="cuda",
         torch_dtype=torch.bfloat16,
         trust_remote_code=True,
         cache_dir=self.cache_dir,
         low_cpu_mem_usage=True,
         )
 
+        #self.model = torch.nn.DataParallel(self.model, device_ids=[])
+
         self.model.eval()
         self.loaded = True
     
-    """def load(self):
-        self.processor = AutoProcessor.from_pretrained(
-            self.model_name,
-            trust_remote_code=True
-        )
-
-        self.model = AutoModelForCausalLM.from_pretrained(
-            self.model_name,
-            device_map="auto" if self.device.startswith("cuda") else None,
-            torch_dtype=torch.bfloat16 if self.device.startswith("cuda") else torch.float32,
-            trust_remote_code=True
-        )
-
-        self.model.eval()
-        self.loaded = True"""
 
     def generate(self, prompt_parts, image_paths=None, max_new_tokens=256, temperature=0.7, top_p=1.0, top_k=50, do_sample=True):
         if not self.loaded:
@@ -98,22 +85,22 @@ class InternS1LLM(BaseLLM):
 
         messages = []
         if system_instruction:
-            #messages.append({"role": "system", "content": system_instruction})
-            {"role": "system", "content": [{"type": "text", "text": system_instruction}]}
+            messages.append({
+                "role": "system",
+                "content": [{"type": "text", "text": system_instruction}]
+            })
         messages.append({"role": "user", "content": content})
 
         #print(messages)
-
-        inputs = self.processor.apply_chat_template(
-            messages,
-            add_generation_prompt=True,
-            tokenize=True,
-            return_dict=True,
-            return_tensors="pt"
-        ).to(self.model.device)
-
-        #with torch.no_grad():
         with torch.inference_mode():
+            inputs = self.processor.apply_chat_template(
+                messages,
+                add_generation_prompt=True,
+                tokenize=True,
+                return_dict=True,
+                return_tensors="pt"
+            ).to(self.model.device)
+        
             outputs = self.model.generate(
                 **inputs,
                 max_new_tokens=max_new_tokens,
