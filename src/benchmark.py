@@ -2,7 +2,7 @@ import pandas as pd
 from tqdm import tqdm
 from src.prompt import build_prompt_parts #,build_prompt
 from src.evaluator import strict_match
-from src.utils import normalize_image_path
+from src.utils import normalize_image_path, save_csv
 from transformers import AutoTokenizer
 
 class BenchmarkRunner:
@@ -73,7 +73,7 @@ class BenchmarkRunner:
             return example_rows[:n]
         return example_rows
 
-    def run_one_shot(self):
+    def run_one_shot(self, output_path=None):
         results = []
 
         for _, row in tqdm(
@@ -121,12 +121,14 @@ class BenchmarkRunner:
                     "is_correct": is_correct,
                     "closeness_score": closeness
                 })
+                if output_path:
+                    save_csv(pd.DataFrame(results), output_path)
 
         return pd.DataFrame(results)
 
     
 
-    def run_two_shot(self):
+    def run_two_shot(self, output_path=None):
         results = []
 
         for _, row in tqdm(self.df_targets.iterrows(), total=len(self.df_targets), desc="Two-Shot"):
@@ -170,10 +172,12 @@ class BenchmarkRunner:
                 "is_correct": is_correct,
                 "closeness_score": closeness
             })
+            if output_path:
+                save_csv(pd.DataFrame(results), output_path)
 
         return pd.DataFrame(results)
     
-    def run_learning_from_experience(self):
+    def run_learning_from_experience(self, output_path=None):
         results = []
 
         for _, row in tqdm(self.df_originals.iterrows(),
@@ -278,6 +282,8 @@ class BenchmarkRunner:
                 "num_iterations": 3,
                 "closeness_score": closeness
             })
+            if output_path:
+                save_csv(pd.DataFrame(results), output_path)
 
         return pd.DataFrame(results)
     

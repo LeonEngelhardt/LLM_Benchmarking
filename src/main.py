@@ -203,31 +203,34 @@ def main():
                 )
 
                 # One-Shot
-                if args.experiment in ["one-shot", "all"]:
-                    print(f"--- {model_name} | One-Shot ---")
-                    one_shot_df = runner.run_one_shot()
-                    save_csv(
-                        one_shot_df,
-                        f"results/{model_name.replace('/', '_')}_one_shot.csv"
-                    )
+        if args.experiment in ["one-shot", "all"]:
+            print(f"--- {model_name} | One-Shot ---")
+            one_shot_path = f"results/{model_name.replace('/', '_')}_one_shot.csv"
+            one_shot_df = runner.run_one_shot(output_path=one_shot_path)
+            save_csv(
+                one_shot_df,
+                one_shot_path
+            )
 
                 # Two-Shot
-                if args.experiment in ["two-shot", "all"]:
-                    print(f"--- {model_name} | Two-Shot ---")
-                    two_shot_df = runner.run_two_shot()
-                    save_csv(
-                        two_shot_df,
-                        f"results/{model_name.replace('/', '_')}_two_shot.csv"
-                    )
+        if args.experiment in ["two-shot", "all"]:
+            print(f"--- {model_name} | Two-Shot ---")
+            two_shot_path = f"results/{model_name.replace('/', '_')}_two_shot.csv"
+            two_shot_df = runner.run_two_shot(output_path=two_shot_path)
+            save_csv(
+                two_shot_df,
+                two_shot_path
+            )
 
                 # Learning-from-Experience
-                if args.experiment in ["lfe", "all"]:
-                    print(f"--- {model_name} | Learning-from-Experience ---")
-                    lfe_df = runner.run_learning_from_experience()
-                    save_csv(
-                        lfe_df,
-                        f"results/{model_name.replace('/', '_')}_lfe.csv"
-                    )
+        if args.experiment in ["lfe", "all"]:
+            print(f"--- {model_name} | Learning-from-Experience ---")
+            lfe_path = f"results/{model_name.replace('/', '_')}_lfe.csv"
+            lfe_df = runner.run_learning_from_experience(output_path=lfe_path)
+            save_csv(
+                lfe_df,
+                lfe_path
+            )
 
 
 if __name__ == "__main__":
