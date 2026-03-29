@@ -135,7 +135,8 @@ class DeepSeekVLV2LLM(BaseLLM):
 
         inputs_embeds = self.model.prepare_inputs_embeds(**prepare_inputs)
 
-        with torch.inference_mode():
+        with torch.no_grad():
+        #with torch.inference_mode(): --> deepseek_vl2 needs no_grad according to cluster-log!
             outputs = self.model.generate(
                 inputs_embeds=inputs_embeds,
                 attention_mask=prepare_inputs.attention_mask,
@@ -152,9 +153,27 @@ class DeepSeekVLV2LLM(BaseLLM):
         input_length = prepare_inputs.input_ids.shape[1]
         generated_ids = output_ids[input_length:]
 
-        response = self.tokenizer.decode(
+        trimmed_response = self.tokenizer.decode(
             generated_ids.cpu().tolist(),
             skip_special_tokens=True
         ).strip()
 
-        return response
+        full_response = self.tokenizer.decode(
+            output_ids.cpu().tolist(),
+            skip_special_tokens=True
+        ).strip()
+
+        print(
+            f"[DEBUG][DeepSeekVL2] input_len={input_length} "
+            f"output_len={output_ids.shape[0]} generated_len={generated_ids.shape[0]}"
+        )
+        print(f"[DEBUG][DeepSeekVL2] trimmed_response_preview={trimmed_response[:200]!r}")
+        print(f"[DEBUG][DeepSeekVL2] full_response_preview={full_response[:200]!r}")
+
+        if trimmed_response:
+            return trimmed_response
+
+        if full_response:
+            return full_response
+
+        return ""

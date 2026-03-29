@@ -179,58 +179,58 @@ def main():
         
 
         with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
-            with torch.inference_mode():
+            #with torch.inference_mode(): --> Problematic for deepseek_vl2, as it sometimes explicitely needs and wants no_grad instead of inference_mode!
 
-                # Load model via factory
-                llm = get_llm(
-                    model_name=model_name,
-                    vision=vision_enabled,
+            # Load model via factory
+            llm = get_llm(
+                model_name=model_name,
+                vision=vision_enabled,
+            )
+            llm.load()
+
+
+            #active_prompt_rewriter = None
+            #if not vision_enabled:
+            #    active_prompt_rewriter = prompt_rewriter_llm
+
+            runner = BenchmarkRunner(
+                df=df,
+                llm=llm,
+                evaluator=strict_match,
+                closeness_evaluator=closeness_eval,
+                vision=vision_enabled,
+                prompt_rewriter_llm=prompt_rewriter_llm #active_prompt_rewriter
+            )
+
+                    # One-Shot
+            if args.experiment in ["one-shot", "all"]:
+                print(f"--- {model_name} | One-Shot ---")
+                one_shot_path = f"results/{model_name.replace('/', '_')}_one_shot.csv"
+                one_shot_df = runner.run_one_shot(output_path=one_shot_path)
+                save_csv(
+                    one_shot_df,
+                    one_shot_path
                 )
-                llm.load()
 
-
-                #active_prompt_rewriter = None
-                #if not vision_enabled:
-                #    active_prompt_rewriter = prompt_rewriter_llm
-
-                runner = BenchmarkRunner(
-                    df=df,
-                    llm=llm,
-                    evaluator=strict_match,
-                    closeness_evaluator=closeness_eval,
-                    vision=vision_enabled,
-                    prompt_rewriter_llm=prompt_rewriter_llm #active_prompt_rewriter
+                    # Two-Shot
+            if args.experiment in ["two-shot", "all"]:
+                print(f"--- {model_name} | Two-Shot ---")
+                two_shot_path = f"results/{model_name.replace('/', '_')}_two_shot.csv"
+                two_shot_df = runner.run_two_shot(output_path=two_shot_path)
+                save_csv(
+                    two_shot_df,
+                    two_shot_path
                 )
 
-                # One-Shot
-        if args.experiment in ["one-shot", "all"]:
-            print(f"--- {model_name} | One-Shot ---")
-            one_shot_path = f"results/{model_name.replace('/', '_')}_one_shot.csv"
-            one_shot_df = runner.run_one_shot(output_path=one_shot_path)
-            save_csv(
-                one_shot_df,
-                one_shot_path
-            )
-
-                # Two-Shot
-        if args.experiment in ["two-shot", "all"]:
-            print(f"--- {model_name} | Two-Shot ---")
-            two_shot_path = f"results/{model_name.replace('/', '_')}_two_shot.csv"
-            two_shot_df = runner.run_two_shot(output_path=two_shot_path)
-            save_csv(
-                two_shot_df,
-                two_shot_path
-            )
-
-                # Learning-from-Experience
-        if args.experiment in ["lfe", "all"]:
-            print(f"--- {model_name} | Learning-from-Experience ---")
-            lfe_path = f"results/{model_name.replace('/', '_')}_lfe.csv"
-            lfe_df = runner.run_learning_from_experience(output_path=lfe_path)
-            save_csv(
-                lfe_df,
-                lfe_path
-            )
+                    # Learning-from-Experience
+            if args.experiment in ["lfe", "all"]:
+                print(f"--- {model_name} | Learning-from-Experience ---")
+                lfe_path = f"results/{model_name.replace('/', '_')}_lfe.csv"
+                lfe_df = runner.run_learning_from_experience(output_path=lfe_path)
+                save_csv(
+                    lfe_df,
+                    lfe_path
+                )
 
 
 if __name__ == "__main__":

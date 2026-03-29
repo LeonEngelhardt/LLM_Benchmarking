@@ -1,6 +1,6 @@
 import os
 import torch
-from transformers import Qwen3VLMoeForConditionalGeneration, AutoProcessor
+from transformers import AutoProcessor
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from .base import BaseLLM
 
@@ -18,19 +18,19 @@ class Qwen3VLLLM(BaseLLM):
         )
     
     def load(self):
-        self.processor = AutoProcessor.from_pretrained(
-            self.model_name,
-            trust_remote_code=True,
-            cache_dir=self.cache_dir
-        )
+        if self.vision:
+            self.processor = AutoProcessor.from_pretrained(
+                self.model_name,
+                trust_remote_code=True,
+                cache_dir=self.cache_dir
+            )
+        else:
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                self.model_name,
+                trust_remote_code=True,
+                cache_dir=self.cache_dir
+            )
 
-        """self.model = Qwen3VLMoeForConditionalGeneration.from_pretrained(
-            self.model_name,
-            device_map="auto" if self.device.startswith("cuda") else None,
-            torch_dtype=torch.bfloat16 if self.device.startswith("cuda") else torch.float32,
-            trust_remote_code=True,
-            cache_dir=self.cache_dir
-        )"""
         self.model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
             device_map="auto" if self.device.startswith("cuda") else None,
@@ -64,51 +64,65 @@ class Qwen3VLLLM(BaseLLM):
         #    raise ValueError("prompt_parts must be a tuple: (instruction, blocks)")
 
         instruction, blocks = prompt_parts
-
-        content = []
-
-        if self.vision and image_paths:
-            if not isinstance(image_paths, list):
-                image_paths = [image_paths]
-
-            for img in image_paths:
-                if img:
-                    content.append({
-                        "type": "image",
-                        "image": img
-                    })
-
-        elif isinstance(blocks, list):
-            for part in blocks:
-                if part["type"] == "image":
-                    content.append({
-                        "type": "image",
-                        "image": part["source"]["url"]
-                    })
-
         if isinstance(blocks, list):
             text_blocks = [p["text"] for p in blocks if p["type"] == "text"]
             full_text = "\n\n".join(text_blocks)
         else:
             full_text = str(blocks)
 
-        content.append({
-            "type": "text",
-            "text": full_text
-        })
-
-        messages = [
-            {"role": "system", "content": instruction},
-            {"role": "user", "content": content}
+        if not self.vision:
+            messages = [
+                {"role": "system", "content": instruction},
+                {"role": "user", "content": full_text}
             ]
 
-        inputs = self.processor.apply_chat_template(
-            messages,
-            add_generation_prompt=True,
-            tokenize=True,
-            return_dict=True,
-            return_tensors="pt"
-        ).to(self.model.device)
+            text = self.tokenizer.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=True
+            )
+
+            inputs = self.tokenizer([text], return_tensors="pt").to(self.model.device)
+        else:
+            content = []
+
+            if image_paths:
+                if not isinstance(image_paths, list):
+                    image_paths = [image_paths]
+
+                for img in image_paths:
+                    if img:
+                        content.append({
+                            "type": "image",
+                            "image": img
+                        })
+
+            elif isinstance(blocks, list):
+                for part in blocks:
+                    if part["type"] == "image":
+                        content.append({
+                            "type": "image",
+                            "image": part["source"]["url"]
+                        })
+
+            content.append({
+                "type": "text",
+                "text": full_text
+            })
+
+            messages = [
+                {"role": "system", "content": instruction},
+                {"role": "user", "content": content}
+            ]
+
+            inputs = self.processor.apply_chat_template(
+                messages,
+                add_generation_prompt=True,
+                tokenize=True,
+                return_dict=True,
+                return_tensors="pt",
+                enable_thinking=False
+            ).to(self.model.device)
 
         #with torch.no_grad():
         with torch.inference_mode():
@@ -122,10 +136,16 @@ class Qwen3VLLLM(BaseLLM):
             for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
         ]
 
-        output_text = self.processor.batch_decode(
-            generated_ids_trimmed,
-            skip_special_tokens=True
-        )
+        if self.vision:
+            output_text = self.processor.batch_decode(
+                generated_ids_trimmed,
+                skip_special_tokens=True
+            )
+        else:
+            output_text = self.tokenizer.batch_decode(
+                generated_ids_trimmed,
+                skip_special_tokens=True
+            )
 
         response = output_text[0].strip()
 

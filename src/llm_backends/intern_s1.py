@@ -2,6 +2,7 @@ import os
 import torch
 from transformers import AutoProcessor, AutoModelForCausalLM
 from .base import BaseLLM
+from src.utils import load_image
 
 
 class InternS1LLM(BaseLLM):
@@ -91,15 +92,27 @@ class InternS1LLM(BaseLLM):
             })
         messages.append({"role": "user", "content": content})
 
-        #print(messages)
         with torch.inference_mode():
-            inputs = self.processor.apply_chat_template(
+            text = self.processor.apply_chat_template(
                 messages,
                 add_generation_prompt=True,
-                tokenize=True,
-                return_dict=True,
-                return_tensors="pt"
-            ).to(self.model.device)
+                tokenize=False,
+                enable_thinking=False
+            )
+
+            pil_images = [load_image(img) for img in images] if images else None
+
+            if pil_images:
+                inputs = self.processor(
+                    text=[text],
+                    images=pil_images,
+                    return_tensors="pt"
+                ).to(self.model.device, dtype=torch.bfloat16)
+            else:
+                inputs = self.processor(
+                    text=[text],
+                    return_tensors="pt"
+                ).to(self.model.device)
         
             outputs = self.model.generate(
                 **inputs,
@@ -112,10 +125,7 @@ class InternS1LLM(BaseLLM):
 
         generated_tokens = outputs[:, inputs["input_ids"].shape[-1]:]
 
-        response = self.processor.decode(
-            generated_tokens[0],
-            skip_special_tokens=True
-        ).strip()
+        response = self.processor.decode(generated_tokens[0], skip_special_tokens=True).strip()
 
         if "Answer:" in response:
             return response.split("Answer:")[-1].strip()
