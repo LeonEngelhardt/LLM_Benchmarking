@@ -100,8 +100,11 @@ class BenchmarkRunner:
                     if target_img:
                         image_paths.append(target_img)
 
-                raw_answer = self.llm.generate(prompt_parts, image_paths=image_paths if self.vision else None)
-                #raw_answer = self.llm.generate(prompt_parts)
+                try:
+                    raw_answer = self.llm.generate(prompt_parts, image_paths=image_paths if self.vision else None)
+                    #raw_answer = self.llm.generate(prompt_parts)
+                except Exception as exc:
+                    raw_answer = f"[ERROR] {type(exc).__name__}: {exc}"
 
                 if not raw_answer:
                     raw_answer = "[No answer]"
@@ -153,8 +156,11 @@ class BenchmarkRunner:
                 if target_img:
                     image_paths.append(target_img)
 
-            raw_answer = self.llm.generate(prompt_parts, image_paths=image_paths if self.vision else None)
-            #raw_answer = self.llm.generate(prompt_parts)
+            try:
+                raw_answer = self.llm.generate(prompt_parts, image_paths=image_paths if self.vision else None)
+                #raw_answer = self.llm.generate(prompt_parts)
+            except Exception as exc:
+                raw_answer = f"[ERROR] {type(exc).__name__}: {exc}"
 
 
             if not raw_answer:
@@ -210,10 +216,13 @@ class BenchmarkRunner:
 
                 prompt_parts = self.check_token_length(prompt_parts)
 
-                raw_answer = self.llm.generate(
-                    prompt_parts,
-                    image_paths=accumulated_image_paths if self.vision else None
-                )
+                try:
+                    raw_answer = self.llm.generate(
+                        prompt_parts,
+                        image_paths=accumulated_image_paths if self.vision else None
+                    )
+                except Exception as exc:
+                    raw_answer = f"[ERROR] {type(exc).__name__}: {exc}"
 
                 if not raw_answer:
                     raw_answer = "[No answer]"
@@ -257,10 +266,13 @@ class BenchmarkRunner:
 
             final_prompt_parts = (instruction, accumulated_blocks)
 
-            final_raw_answer = self.llm.generate(
-                final_prompt_parts,
-                image_paths=accumulated_image_paths if self.vision else None
-            )
+            try:
+                final_raw_answer = self.llm.generate(
+                    final_prompt_parts,
+                    image_paths=accumulated_image_paths if self.vision else None
+                )
+            except Exception as exc:
+                final_raw_answer = f"[ERROR] {type(exc).__name__}: {exc}"
 
             if not final_raw_answer:
                 final_raw_answer = "[No answer]"

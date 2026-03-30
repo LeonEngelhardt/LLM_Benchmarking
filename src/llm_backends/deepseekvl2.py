@@ -75,9 +75,16 @@ class DeepSeekVLV2LLM(BaseLLM):
         for path in image_paths:
             if path.startswith("http"):
                 response = requests.get(path, timeout=10)
-                img = Image.open(BytesIO(response.content)).convert("RGB")
+                response.raise_for_status()
+                try:
+                    img = Image.open(BytesIO(response.content)).convert("RGB")
+                except Exception as exc:
+                    raise ValueError(f"Failed to decode remote image: {path}") from exc
             else:
-                img = Image.open(path).convert("RGB")
+                try:
+                    img = Image.open(path).convert("RGB")
+                except Exception as exc:
+                    raise ValueError(f"Failed to decode local image: {path}") from exc
             pil_images.append(img)
         return pil_images
     

@@ -44,15 +44,19 @@ Score:
 
 
         raw = self.llm.generate(prompt)
+        print(f"[DEBUG][ClosenessEvaluator] raw_judge_output={raw!r}")
 
         if not raw:
+            print("[DEBUG][ClosenessEvaluator] judge returned empty output")
             return None
 
         match = re.search(r"(\d+(\.\d+)?)", raw)
         if not match:
+            print("[DEBUG][ClosenessEvaluator] could not parse numeric score")
             return None
 
         value = float(match.group(1))
+        print(f"[DEBUG][ClosenessEvaluator] parsed_score={value}")
         return max(0.0, min(10.0, value))
 
 # this evaluator is only here to be able to test the framework locally! -> QWEN will rate the answer from 0 to 10 when on a cluster
