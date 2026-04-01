@@ -33,8 +33,6 @@ class DeepSeekV3LLM(BaseLLM):
         if examples:
             full_prompt = "\n".join(examples) + "\n" + full_prompt
 
-        print("Instruction:", instruction)
-        print("Prompt:", full_prompt)
 
         response = self.client.chat.completions.create(
             model=self.model_name,

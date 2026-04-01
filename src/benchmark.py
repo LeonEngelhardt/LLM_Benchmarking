@@ -82,7 +82,7 @@ class BenchmarkRunner:
             desc="One-Shot"
         ):
 
-            example_rows = self._get_example_rows(row, n=None)
+            example_rows = self._get_example_rows(row, n=2)
 
             for ex in example_rows:
                 prompt_parts = build_prompt_parts(row, [ex], mode="one_shot")

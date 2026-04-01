@@ -47,13 +47,17 @@ class Qwen3VLLLM(BaseLLM):
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")
 
+        direct_text_prompt = None
         if isinstance(prompt_parts, str):
-            prompt_parts = (
-                "You are a helpful assistant.",
-                [{"type": "text", "text": prompt_parts}]
-            )
+            if not self.vision and self.model_name == "Qwen/Qwen3-4B-Instruct-2507":
+                direct_text_prompt = prompt_parts.strip()
+            else:
+                prompt_parts = (
+                    "You are a helpful assistant.",
+                    [{"type": "text", "text": prompt_parts}]
+                )
 
-        if not isinstance(prompt_parts, tuple) or len(prompt_parts) != 2:
+        if direct_text_prompt is None and (not isinstance(prompt_parts, tuple) or len(prompt_parts) != 2):
             raise ValueError("prompt_parts must be tuple or string.")
 
 
@@ -63,20 +67,30 @@ class Qwen3VLLLM(BaseLLM):
         #if not isinstance(prompt_parts, tuple) or len(prompt_parts) != 2:
         #    raise ValueError("prompt_parts must be a tuple: (instruction, blocks)")
 
-        instruction, blocks = prompt_parts
-        if isinstance(blocks, list):
-            text_blocks = [p["text"] for p in blocks if p["type"] == "text"]
-            full_text = "\n\n".join(text_blocks)
-        else:
-            full_text = str(blocks)
-
         if not self.vision:
             if self.model_name == "Qwen/Qwen3-4B-Instruct-2507":
-                judge_prompt = f"{instruction}\n\n{full_text}".strip()
+                if direct_text_prompt is not None:
+                    judge_prompt = direct_text_prompt
+                else:
+                    instruction, blocks = prompt_parts
+                    if isinstance(blocks, list):
+                        text_blocks = [p["text"] for p in blocks if p["type"] == "text"]
+                        full_text = "\n\n".join(text_blocks)
+                    else:
+                        full_text = str(blocks)
+                    judge_prompt = f"{instruction}\n\n{full_text}".strip()
+
+                print(f"[DEBUG][Qwen3Judge] prompt_preview={judge_prompt[:400]!r}")
                 messages = [
                     {"role": "user", "content": judge_prompt}
                 ]
             else:
+                instruction, blocks = prompt_parts
+                if isinstance(blocks, list):
+                    text_blocks = [p["text"] for p in blocks if p["type"] == "text"]
+                    full_text = "\n\n".join(text_blocks)
+                else:
+                    full_text = str(blocks)
                 messages = [
                     {"role": "system", "content": instruction},
                     {"role": "user", "content": full_text}
@@ -90,6 +104,12 @@ class Qwen3VLLLM(BaseLLM):
 
             inputs = self.tokenizer([text], return_tensors="pt").to(self.model.device)
         else:
+            instruction, blocks = prompt_parts
+            if isinstance(blocks, list):
+                text_blocks = [p["text"] for p in blocks if p["type"] == "text"]
+                full_text = "\n\n".join(text_blocks)
+            else:
+                full_text = str(blocks)
             content = []
 
             if image_paths:
