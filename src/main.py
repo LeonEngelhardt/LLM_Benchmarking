@@ -6,6 +6,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from src.utils import load_csv, save_csv
 from src.benchmark import BenchmarkRunner
+from src.closeness_repair import ClosenessRepairRunner
 from src.evaluator import (
     strict_match,
     ClosenessEvaluator,
@@ -35,6 +36,19 @@ def main():
         type=str,
         default=None,
         help="Run benchmark for a specific model only (default: run all models for this venv)"
+    )
+
+    parser.add_argument(
+        "--only-evaluate-closeness",
+        action="store_true",
+        help="Only evaluate closeness for an existing result CSV"
+    )
+
+    parser.add_argument(
+        "--result-file",
+        type=str,
+        default=None,
+        help="Path to an existing result CSV file for closeness-only evaluation"
     )
 
     args = parser.parse_args()
@@ -92,22 +106,17 @@ def main():
         print("[INFO] Using string-based closeness evaluator (local fallback)")
         closeness_eval = ClosenessEvaluator()
         prompt_rewriter_llm = None
-    """if gpu_available and venv_name != "venv_only_deepseek_vl2":
-        print("[INFO] Loading Qwen3 once (Judge + Prompt Rewriter)")
 
-        qwen_shared = get_llm(
-            model_name="Qwen/Qwen3-4B-Instruct-2507", #Qwen/Qwen3-VL-235B-A22B-Instruct
-            vision=False,
-        )
-        qwen_shared.load()
+    if args.only_evaluate_closeness:
+        if not args.result_file:
+            print("[ERROR] --result-file is required when using --only-evaluate-closeness")
+            return
 
-        closeness_eval = LLMClosenessEvaluator(qwen_shared)
-        prompt_rewriter_llm = qwen_shared
-
-    else:
-        print("[INFO] Using string-based closeness evaluator (local fallback)")
-        closeness_eval = ClosenessEvaluator()
-        prompt_rewriter_llm = None"""
+        print(f"[INFO] Running closeness-only evaluation for: {args.result_file}")
+        runner = ClosenessRepairRunner(closeness_eval)
+        output_file = runner.run(args.result_file)
+        print(f"[INFO] Wrote result file with refreshed closeness scores to: {output_file}")
+        return
 
 
     # Models to benchmark
@@ -202,7 +211,7 @@ def main():
                 prompt_rewriter_llm=prompt_rewriter_llm #active_prompt_rewriter
             )
 
-                    # One-Shot
+            # One-Shot
             if args.experiment in ["one-shot", "all"]:
                 print(f"--- {model_name} | One-Shot ---")
                 one_shot_path = f"results/{model_name.replace('/', '_')}_one_shot.csv"
@@ -212,7 +221,7 @@ def main():
                     one_shot_path
                 )
 
-                    # Two-Shot
+            # Two-Shot
             if args.experiment in ["two-shot", "all"]:
                 print(f"--- {model_name} | Two-Shot ---")
                 two_shot_path = f"results/{model_name.replace('/', '_')}_two_shot.csv"
@@ -222,7 +231,7 @@ def main():
                     two_shot_path
                 )
 
-                    # Learning-from-Experience
+            # Learning-from-Experience
             if args.experiment in ["lfe", "all"]:
                 print(f"--- {model_name} | Learning-from-Experience ---")
                 lfe_path = f"results/{model_name.replace('/', '_')}_lfe.csv"
