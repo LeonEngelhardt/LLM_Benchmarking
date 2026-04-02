@@ -23,7 +23,7 @@ class HFTextLLM(BaseLLM):
         self.model.eval()
         self.loaded = True
 
-    def generate(self, prompt_parts, image_paths=None, max_new_tokens=256, temperature=0.7):
+    def generate(self, prompt_parts, image_paths=None, max_new_tokens=512, temperature=0.7):
 
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")

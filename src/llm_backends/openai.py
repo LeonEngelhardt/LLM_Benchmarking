@@ -16,7 +16,7 @@ class OpenAILLM(BaseLLM):
         self.loaded = True
         print(f"OpenAI model '{self.model_name}' loaded.")
 
-    def generate(self, prompt_parts, max_output_tokens=256, temperature=0.0):
+    def generate(self, prompt_parts, max_output_tokens=512, temperature=0.0):
 
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")

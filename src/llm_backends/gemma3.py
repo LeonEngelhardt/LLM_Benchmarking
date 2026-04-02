@@ -25,7 +25,7 @@ class Gemma3MultimodalLLM(BaseLLM):
         print("Model loaded successfully.")
 
     
-    def generate(self, prompt_parts, max_new_tokens=256, temperature=0.7, do_sample=False):
+    def generate(self, prompt_parts, max_new_tokens=512, temperature=0.7, do_sample=False):
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")
 

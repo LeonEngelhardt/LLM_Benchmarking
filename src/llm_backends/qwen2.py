@@ -34,7 +34,7 @@ class Qwen2VLLLM(BaseLLM):
         self.model.eval()
         self.loaded = True
 
-    def generate(self, prompt_parts, image_paths=None, max_new_tokens=256):
+    def generate(self, prompt_parts, image_paths=None, max_new_tokens=512):
 
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")
