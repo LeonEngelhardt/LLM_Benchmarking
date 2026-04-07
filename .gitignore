@@ -27,3 +27,12 @@ data/dataset_leon save.csv
 
 *.out
 slurm/*.out
+
+venv_all_other_models_py311/
+
+job_*.sh
+
+slurm-*.err
+slurm-*.out
+
+
