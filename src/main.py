@@ -91,7 +91,11 @@ def main():
 
     venv_name = get_active_venv()
 
-    if gpu_available and venv_name != "venv_only_deepseek_vl2":
+    # Avoid keeping a second local HF model resident on the same GPU when
+    # benchmarking a local text model such as Mistral.
+    skip_qwen_helper = args.model == "mistralai/Mistral-7B-Instruct-v0.3"
+
+    if gpu_available and venv_name != "venv_only_deepseek_vl2" and not skip_qwen_helper:
         print("[INFO] Loading Qwen3 once (Judge + Prompt Rewriter)")
 
         try:
@@ -109,7 +113,10 @@ def main():
             closeness_eval = ClosenessEvaluator()
             prompt_rewriter_llm = None
     else:
-        print("[INFO] Using string-based closeness evaluator (local fallback)")
+        if skip_qwen_helper:
+            print("[INFO] Skipping Qwen judge/rewriter for Mistral to reduce GPU memory pressure")
+        else:
+            print("[INFO] Using string-based closeness evaluator (local fallback)")
         closeness_eval = ClosenessEvaluator()
         prompt_rewriter_llm = None
 
@@ -128,7 +135,7 @@ def main():
     # Models to benchmark
     if venv_name == "venv_only_deepseek_vl2":
         models_to_test = [ {"name": "deepseek-ai/deepseek-vl2", "vision": True}, ]
-    elif venv_name == "venv_all_other_models":
+    elif venv_name in ["venv_all_other_models", "venv_all_other_models_py311"]:
         models_to_test = [
             {"name": "gpt2", "vision": False},                                    # local HF --> only for testing
             {"name": "mistralai/Mistral-7B-Instruct-v0.3", "vision": False},      # HF   
@@ -155,6 +162,36 @@ def main():
             {"name": "google/gemma-2-9b-it", "vision": False},                    # HF
             {"name": "gemini-3-pro-preview", "vision": True},                     # Gemini API
             {"name": "gemini-2.5-pro", "vision": True},                           # Gemini API
+        ]
+    else:
+        print(f"[WARNING] Unknown virtual environment '{venv_name}'.")
+        print("[INFO] Falling back to the standard all-other-models registry.")
+        models_to_test = [
+            {"name": "gpt2", "vision": False},
+            {"name": "mistralai/Mistral-7B-Instruct-v0.3", "vision": False},
+            {"name": "deepseek-v3.2", "vision": False},
+            {"name": "DeepSeek-V3.1", "vision": False},
+            {"name": "DeepSeek-V3", "vision": False},
+            {"name": "DeepSeek-V2", "vision": False},
+            {"name": "Salesforce/blip-image-captioning-base", "vision": True},
+            {"name": "llava-hf/llava-onevision-qwen2-7b-ov-hf", "vision": True},
+            {"name": "internlm/Intern-S1-mini", "vision": True},
+            {"name": "claude-opus-4-6", "vision": True},
+            {"name": "claude-3-opus-latest", "vision": True},
+            {"name": "gpt-5.2", "vision": True},
+            {"name": "gpt-4.1", "vision": True},
+            {"name": "gpt-3.5-turbo", "vision": False},
+            {"name": "Qwen/Qwen3-VL-235B-A22B-Instruct", "vision": True},
+            {"name": "Qwen/Qwen2.5-VL-32B-Instruct", "vision": True},
+            {"name": "Qwen/Qwen2-VL-2B-Instruct", "vision": True},
+            {"name": "meta-llama/Llama-4-Scout-17B-16E-Instruct", "vision": True},
+            {"name": "meta-llama/Llama-3.3-70B-Instruct", "vision": False},
+            {"name": "meta-llama/Llama-3.1-70B-Instruct", "vision": False},
+            {"name": "meta-llama/Meta-Llama-3-70B-Instruct", "vision": False},
+            {"name": "google/gemma-3-27b-it", "vision": True},
+            {"name": "google/gemma-2-9b-it", "vision": False},
+            {"name": "gemini-3-pro-preview", "vision": True},
+            {"name": "gemini-2.5-pro", "vision": True},
         ]
 
     # only add models that where explicitly given via args
