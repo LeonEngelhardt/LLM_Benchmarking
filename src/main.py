@@ -125,7 +125,7 @@ def main():
     # Models to benchmark
     if venv_name == "venv_only_deepseek_vl2":
         models_to_test = [ {"name": "deepseek-ai/deepseek-vl2", "vision": True}, ]
-    elif venv_name == "venv_all_other_models":
+    elif venv_name.startswith("venv_all_other_models"):
         models_to_test = [
             {"name": "gpt2", "vision": False},                                    # local HF --> only for testing
             {"name": "mistralai/Mistral-7B-Instruct-v0.3", "vision": False},      # HF   
