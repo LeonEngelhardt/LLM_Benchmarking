@@ -3,6 +3,7 @@ import torch
 import argparse
 import glob
 import pandas as pd
+from contextlib import nullcontext
 from dotenv import load_dotenv
 from src.utils import load_csv, save_csv
 from src.benchmark import BenchmarkRunner
@@ -119,6 +120,8 @@ def main():
         return
 
 
+    models_to_test = []
+
     # Models to benchmark
     if venv_name == "venv_only_deepseek_vl2":
         models_to_test = [ {"name": "deepseek-ai/deepseek-vl2", "vision": True}, ]
@@ -150,6 +153,13 @@ def main():
             {"name": "gemini-3-pro-preview", "vision": True},                     # Gemini API
             {"name": "gemini-2.5-pro", "vision": True},                           # Gemini API
         ]
+
+    if not models_to_test:
+        print(
+            f"[ERROR] No model list configured for venv '{venv_name or '[none]'}'. "
+            "Use a supported venv name or pass --model inside a configured environment."
+        )
+        return
 
     # only add models that where explicitly given via args
     if args.model:
@@ -186,8 +196,12 @@ def main():
             continue
 
         
+        autocast_context = (
+            torch.autocast(device_type='cuda', dtype=torch.bfloat16)
+            if gpu_available else nullcontext()
+        )
 
-        with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+        with autocast_context:
             #with torch.inference_mode(): --> Problematic for deepseek_vl2, as it sometimes explicitely needs and wants no_grad instead of inference_mode!
 
             # Load model via factory
