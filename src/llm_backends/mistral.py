@@ -22,6 +22,10 @@ class MistralLLM(BaseLLM):
             trust_remote_code=True
         )
 
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+            self.model.config.pad_token_id = self.tokenizer.eos_token_id
+
         self.model.eval()
         self.loaded = True
 
@@ -50,7 +54,8 @@ class MistralLLM(BaseLLM):
         inputs = self.tokenizer.apply_chat_template(
             messages,
             add_generation_prompt=True,
-            return_tensors="pt"
+            return_tensors="pt",
+            return_dict=True
         ).to(self.model.device)
 
         with torch.inference_mode():

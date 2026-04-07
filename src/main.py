@@ -2,6 +2,7 @@ import os
 import torch
 import argparse
 import glob
+from contextlib import nullcontext
 import pandas as pd
 from dotenv import load_dotenv
 from src.utils import load_csv, save_csv
@@ -55,6 +56,7 @@ def main():
 
     # Setup
     load_dotenv()
+    os.makedirs("results", exist_ok=True)
 
     # 1. Find all CSV files inside the data folder
     all_files = glob.glob("data/*.csv")
@@ -91,17 +93,21 @@ def main():
 
     if gpu_available and venv_name != "venv_only_deepseek_vl2":
         print("[INFO] Loading Qwen3 once (Judge + Prompt Rewriter)")
-        
-        from src.llm_backends.qwen3 import Qwen3VLLLM
 
-        qwen_shared = get_llm(
-            model_name="Qwen/Qwen3-4B-Instruct-2507",
-            vision=False,
-        )
-        qwen_shared.load()
+        try:
+            qwen_shared = get_llm(
+                model_name="Qwen/Qwen3-4B-Instruct-2507",
+                vision=False,
+            )
+            qwen_shared.load()
 
-        closeness_eval = LLMClosenessEvaluator(qwen_shared)
-        prompt_rewriter_llm = qwen_shared
+            closeness_eval = LLMClosenessEvaluator(qwen_shared)
+            prompt_rewriter_llm = qwen_shared
+        except Exception as exc:
+            print(f"[WARNING] Could not load Qwen judge/rewriter: {type(exc).__name__}: {exc}")
+            print("[INFO] Falling back to string-based closeness evaluator")
+            closeness_eval = ClosenessEvaluator()
+            prompt_rewriter_llm = None
     else:
         print("[INFO] Using string-based closeness evaluator (local fallback)")
         closeness_eval = ClosenessEvaluator()
@@ -186,8 +192,12 @@ def main():
             continue
 
         
-
-        with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+        autocast_context = (
+            torch.autocast(device_type="cuda", dtype=torch.bfloat16)
+            if gpu_available else
+            nullcontext()
+        )
+        with autocast_context:
             #with torch.inference_mode(): --> Problematic for deepseek_vl2, as it sometimes explicitely needs and wants no_grad instead of inference_mode!
 
             # Load model via factory
