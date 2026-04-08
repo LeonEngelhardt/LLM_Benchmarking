@@ -36,11 +36,20 @@ class LlavaOneVision7BLLM(BaseLLM):
         content = []
         images = []
 
+        if system_instruction:
+            content.append({"type": "text", "text": system_instruction})
+
         if isinstance(blocks, list):
             for part in blocks:
-                if part["type"] == "text":
-                    content.append({"type": "text", "text": part["text"]})
-                elif part["type"] == "image":
+                if not isinstance(part, dict):
+                    content.append({"type": "text", "text": str(part)})
+                    continue
+
+                part_type = part.get("type")
+
+                if part_type == "text":
+                    content.append({"type": "text", "text": part.get("text", "")})
+                elif part_type == "image":
                     content.append({"type": "image"})
         else:
             content.append({"type": "text", "text": str(blocks)})
@@ -51,7 +60,7 @@ class LlavaOneVision7BLLM(BaseLLM):
             images = [load_image(img_path) for img_path in image_paths if img_path]
         elif isinstance(blocks, list):
             for part in blocks:
-                if part["type"] != "image":
+                if not isinstance(part, dict) or part.get("type") != "image":
                     continue
 
                 source = part.get("source", {})
@@ -60,13 +69,7 @@ class LlavaOneVision7BLLM(BaseLLM):
                 elif "path" in source:
                     images.append(load_image(source["path"]))
 
-        messages = []
-        if system_instruction:
-            messages.append({
-                "role": "system",
-                "content": [{"type": "text", "text": system_instruction}]
-            })
-        messages.append({"role": "user", "content": content})
+        messages = [{"role": "user", "content": content}]
 
         prompt = self.processor.apply_chat_template(
             messages,
