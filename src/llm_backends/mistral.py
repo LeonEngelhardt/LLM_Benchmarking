@@ -13,14 +13,24 @@ class MistralLLM(BaseLLM):
         use_cuda = torch.cuda.is_available() and "cuda" in self.device
         target_device = "cuda" if use_cuda else "cpu"
 
+        print("torch version:", torch.__version__)
+        print("torch cuda runtime:", torch.version.cuda)
+        print("cuda available:", torch.cuda.is_available())
+        print("cuda device count:", torch.cuda.device_count())
+        if torch.cuda.is_available():
+            print("device 0:", torch.cuda.get_device_name(0))
+
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.model_name,
             trust_remote_code=True
         )
 
+        if getattr(self.tokenizer, "model_max_length", None) is None or self.tokenizer.model_max_length > 100000:
+            self.tokenizer.model_max_length = 2048
+
         self.model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
-            torch_dtype=torch.bfloat16 if use_cuda else torch.float32,
+            dtype=torch.bfloat16 if use_cuda else torch.float32,
             device_map="auto" if use_cuda else None,
             trust_remote_code=True
         )
@@ -65,11 +75,18 @@ class MistralLLM(BaseLLM):
             prompt_text,
             return_tensors="pt",
             padding=True,
-            truncation=True
+            truncation=True,
+            max_length=2048
         )
 
-        target_device = "cuda" if torch.cuda.is_available() and "cuda" in self.device else "cpu"
-        inputs = {k: v.to(target_device) for k, v in inputs.items()}
+        if torch.cuda.is_available() and "cuda" in self.device:
+            first_device = next(self.model.parameters()).device
+            inputs = {k: v.to(first_device) for k, v in inputs.items()}
+        else:
+            inputs = {k: v.to("cpu") for k, v in inputs.items()}
+
+        print("tokenizer max length:", getattr(self.tokenizer, "model_max_length", "unknown"))
+        print("actual input length:", inputs["input_ids"].shape[-1])
 
         with torch.inference_mode():
             outputs = self.model.generate(
