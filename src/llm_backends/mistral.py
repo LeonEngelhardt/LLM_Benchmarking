@@ -71,7 +71,7 @@ class MistralLLM(BaseLLM):
             tokenize=False
         )
 
-        inputs = self.tokenizer(
+        encodings = self.tokenizer(
             prompt_text,
             return_tensors="pt",
             padding=True,
@@ -81,9 +81,9 @@ class MistralLLM(BaseLLM):
 
         if torch.cuda.is_available() and "cuda" in self.device:
             first_device = next(self.model.parameters()).device
-            inputs = {k: v.to(first_device) for k, v in inputs.items()}
+            inputs = {k: v.to(first_device) for k, v in encodings.items()}
         else:
-            inputs = {k: v.to("cpu") for k, v in inputs.items()}
+            inputs = {k: v.to("cpu") for k, v in encodings.items()}
 
         print("tokenizer max length:", getattr(self.tokenizer, "model_max_length", "unknown"))
         print("actual input length:", inputs["input_ids"].shape[-1])
