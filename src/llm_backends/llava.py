@@ -26,6 +26,9 @@ class LlavaOneVision7BLLM(BaseLLM):
             use_fast=True,
         )
 
+        if hasattr(self.processor, "tokenizer"):
+            self.processor.tokenizer.model_max_length = 4096
+
         self.model = LlavaOnevisionForConditionalGeneration.from_pretrained(
             self.model_name,
             dtype=torch.bfloat16 if use_cuda else torch.float32,
@@ -53,7 +56,7 @@ class LlavaOneVision7BLLM(BaseLLM):
         images = []
 
         if system_instruction:
-            content.append({"type": "text", "text": system_instruction})
+            content.append({"type": "text", "text": str(system_instruction)})
 
         if isinstance(blocks, list):
             for part in blocks:
@@ -64,7 +67,7 @@ class LlavaOneVision7BLLM(BaseLLM):
                 part_type = part.get("type")
 
                 if part_type == "text":
-                    content.append({"type": "text", "text": part.get("text", "")})
+                    content.append({"type": "text", "text": str(part.get("text", ""))})
                 elif part_type == "image":
                     content.append({"type": "image"})
         else:
@@ -77,7 +80,9 @@ class LlavaOneVision7BLLM(BaseLLM):
             loaded_images = [load_image(img_path) for img_path in image_paths if img_path]
             images.extend(loaded_images)
 
-            content = [{"type": "image"} for _ in loaded_images] + content
+            content = [{"type": "image"} for _ in loaded_images] + [
+                item for item in content if item.get("type") == "text"
+            ]
 
         elif isinstance(blocks, list):
             for part in blocks:
@@ -85,10 +90,14 @@ class LlavaOneVision7BLLM(BaseLLM):
                     continue
 
                 source = part.get("source", {})
-                if "url" in source:
-                    images.append(load_image(source["url"]))
-                elif "path" in source:
-                    images.append(load_image(source["path"]))
+
+                if isinstance(source, dict):
+                    if "url" in source:
+                        images.append(load_image(source["url"]))
+                    elif "path" in source:
+                        images.append(load_image(source["path"]))
+                elif isinstance(source, str):
+                    images.append(load_image(source))
 
         messages = [{"role": "user", "content": content}]
 
