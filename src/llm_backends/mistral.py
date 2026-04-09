@@ -10,6 +10,9 @@ class MistralLLM(BaseLLM):
         self.loaded = False
 
     def load(self):
+        use_cuda = torch.cuda.is_available() and "cuda" in self.device
+        target_device = "cuda" if use_cuda else "cpu"
+
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.model_name,
             trust_remote_code=True
@@ -17,10 +20,13 @@ class MistralLLM(BaseLLM):
 
         self.model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
-            torch_dtype=torch.bfloat16 if "cuda" in self.device else torch.float32,
-            device_map="auto" if "cuda" in self.device else None,
+            torch_dtype=torch.bfloat16 if use_cuda else torch.float32,
+            device_map="auto" if use_cuda else None,
             trust_remote_code=True
         )
+
+        if not use_cuda:
+            self.model = self.model.to(target_device)
 
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
@@ -30,7 +36,6 @@ class MistralLLM(BaseLLM):
         self.loaded = True
 
     def generate(self, prompt_parts, image_paths=None, max_new_tokens=512, temperature=0.7):
-
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")
 
@@ -48,15 +53,23 @@ class MistralLLM(BaseLLM):
             user_content = str(blocks)
 
         user_message = {"role": "user", "content": user_content}
-
         messages = [m for m in (system_message, user_message) if m is not None]
 
-        inputs = self.tokenizer.apply_chat_template(
+        prompt_text = self.tokenizer.apply_chat_template(
             messages,
             add_generation_prompt=True,
+            tokenize=False
+        )
+
+        inputs = self.tokenizer(
+            prompt_text,
             return_tensors="pt",
-            return_dict=True
-        ).to(self.model.device)
+            padding=True,
+            truncation=True
+        )
+
+        target_device = "cuda" if torch.cuda.is_available() and "cuda" in self.device else "cpu"
+        inputs = {k: v.to(target_device) for k, v in inputs.items()}
 
         with torch.inference_mode():
             outputs = self.model.generate(
@@ -69,6 +82,7 @@ class MistralLLM(BaseLLM):
 
         input_length = inputs["input_ids"].shape[-1]
         generated_tokens = outputs[0][input_length:]
+
         response = self.tokenizer.decode(
             generated_tokens,
             skip_special_tokens=True
