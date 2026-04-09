@@ -11,15 +11,25 @@ class LlavaOneVision7BLLM(BaseLLM):
         self.loaded = False
 
     def load(self):
-        self.processor = AutoProcessor.from_pretrained(self.model_name)
-
         use_cuda = torch.cuda.is_available() and self.device.startswith("cuda")
         target_device = "cuda" if use_cuda else "cpu"
 
+        print("torch version:", torch.__version__)
+        print("torch cuda runtime:", torch.version.cuda)
+        print("cuda available:", torch.cuda.is_available())
+        print("cuda device count:", torch.cuda.device_count())
+        if torch.cuda.is_available():
+            print("device 0:", torch.cuda.get_device_name(0))
+
+        self.processor = AutoProcessor.from_pretrained(
+            self.model_name,
+            use_fast=True,
+        )
+
         self.model = LlavaOnevisionForConditionalGeneration.from_pretrained(
             self.model_name,
-            torch_dtype=torch.bfloat16 if use_cuda else torch.float32,
-            low_cpu_mem_usage=True
+            dtype=torch.bfloat16 if use_cuda else torch.float32,
+            low_cpu_mem_usage=True,
         ).to(target_device)
 
         self.model.eval()
@@ -42,7 +52,6 @@ class LlavaOneVision7BLLM(BaseLLM):
         content = []
         images = []
 
-        # Put system instruction into user text content for simplicity
         if system_instruction:
             content.append({"type": "text", "text": system_instruction})
 
@@ -61,7 +70,6 @@ class LlavaOneVision7BLLM(BaseLLM):
         else:
             content.append({"type": "text", "text": str(blocks)})
 
-        # If images are passed separately, add one image placeholder per image
         if image_paths:
             if not isinstance(image_paths, list):
                 image_paths = [image_paths]
@@ -69,7 +77,6 @@ class LlavaOneVision7BLLM(BaseLLM):
             loaded_images = [load_image(img_path) for img_path in image_paths if img_path]
             images.extend(loaded_images)
 
-            # Add missing image placeholders
             content = [{"type": "image"} for _ in loaded_images] + content
 
         elif isinstance(blocks, list):
@@ -88,35 +95,43 @@ class LlavaOneVision7BLLM(BaseLLM):
         prompt = self.processor.apply_chat_template(
             messages,
             add_generation_prompt=True,
-            tokenize=False
+            tokenize=False,
         )
 
         inputs = self.processor(
             text=prompt,
             images=images if images else None,
-            return_tensors="pt"
+            return_tensors="pt",
+            truncation=True,
+            max_length=4096,
         )
 
         inputs = {
-            k: (v.to(target_device, torch.bfloat16) if use_cuda and torch.is_floating_point(v) else v.to(target_device))
+            k: (
+                v.to(target_device, dtype=torch.bfloat16)
+                if use_cuda and torch.is_tensor(v) and torch.is_floating_point(v)
+                else v.to(target_device)
+            )
             for k, v in inputs.items()
         }
 
         input_len = inputs["input_ids"].shape[-1]
+        print("tokenizer max length:", getattr(self.processor.tokenizer, "model_max_length", "unknown"))
+        print("actual input length:", input_len)
 
         with torch.inference_mode():
             outputs = self.model.generate(
                 **inputs,
                 max_new_tokens=max_new_tokens,
                 temperature=temperature,
-                do_sample=do_sample
+                do_sample=do_sample,
             )
 
         generated_tokens = outputs[:, input_len:]
 
         decoded = self.processor.batch_decode(
             generated_tokens,
-            skip_special_tokens=True
+            skip_special_tokens=True,
         )[0].strip()
 
         if "Answer:" in decoded:
