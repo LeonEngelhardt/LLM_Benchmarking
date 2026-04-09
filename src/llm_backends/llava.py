@@ -13,11 +13,14 @@ class LlavaOneVision7BLLM(BaseLLM):
     def load(self):
         self.processor = AutoProcessor.from_pretrained(self.model_name)
 
+        use_cuda = torch.cuda.is_available() and self.device.startswith("cuda")
+        target_device = "cuda" if use_cuda else "cpu"
+
         self.model = LlavaOnevisionForConditionalGeneration.from_pretrained(
             self.model_name,
-            torch_dtype=torch.bfloat16 if self.device.startswith("cuda") else torch.float32,
+            torch_dtype=torch.bfloat16 if use_cuda else torch.float32,
             low_cpu_mem_usage=True
-        ).to(self.device)
+        ).to(target_device)
 
         self.model.eval()
         self.loaded = True
@@ -25,6 +28,9 @@ class LlavaOneVision7BLLM(BaseLLM):
     def generate(self, prompt_parts, image_paths=None, max_new_tokens=512, temperature=0.7, do_sample=True):
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")
+
+        use_cuda = torch.cuda.is_available() and self.device.startswith("cuda")
+        target_device = "cuda" if use_cuda else "cpu"
 
         if isinstance(prompt_parts, tuple) and len(prompt_parts) == 2:
             instruction, blocks = prompt_parts
@@ -36,6 +42,7 @@ class LlavaOneVision7BLLM(BaseLLM):
         content = []
         images = []
 
+        # Put system instruction into user text content for simplicity
         if system_instruction:
             content.append({"type": "text", "text": system_instruction})
 
@@ -54,10 +61,17 @@ class LlavaOneVision7BLLM(BaseLLM):
         else:
             content.append({"type": "text", "text": str(blocks)})
 
+        # If images are passed separately, add one image placeholder per image
         if image_paths:
             if not isinstance(image_paths, list):
                 image_paths = [image_paths]
-            images = [load_image(img_path) for img_path in image_paths if img_path]
+
+            loaded_images = [load_image(img_path) for img_path in image_paths if img_path]
+            images.extend(loaded_images)
+
+            # Add missing image placeholders
+            content = [{"type": "image"} for _ in loaded_images] + content
+
         elif isinstance(blocks, list):
             for part in blocks:
                 if not isinstance(part, dict) or part.get("type") != "image":
@@ -81,10 +95,12 @@ class LlavaOneVision7BLLM(BaseLLM):
             text=prompt,
             images=images if images else None,
             return_tensors="pt"
-        ).to(
-            self.device,
-            torch.bfloat16 if self.device.startswith("cuda") else torch.float32
         )
+
+        inputs = {
+            k: (v.to(target_device, torch.bfloat16) if use_cuda and torch.is_floating_point(v) else v.to(target_device))
+            for k, v in inputs.items()
+        }
 
         input_len = inputs["input_ids"].shape[-1]
 
@@ -96,8 +112,12 @@ class LlavaOneVision7BLLM(BaseLLM):
                 do_sample=do_sample
             )
 
-        generated_tokens = outputs[0][input_len:]
-        decoded = self.processor.decode(generated_tokens, skip_special_tokens=True).strip()
+        generated_tokens = outputs[:, input_len:]
+
+        decoded = self.processor.batch_decode(
+            generated_tokens,
+            skip_special_tokens=True
+        )[0].strip()
 
         if "Answer:" in decoded:
             return decoded.split("Answer:")[-1].strip()
