@@ -27,7 +27,8 @@ class LlavaOneVision7BLLM(BaseLLM):
         )
 
         if hasattr(self.processor, "tokenizer"):
-            self.processor.tokenizer.model_max_length = 4096
+            self.processor.tokenizer.model_max_length = 2048
+            print("forced tokenizer max length:", self.processor.tokenizer.model_max_length)
 
         self.model = LlavaOnevisionForConditionalGeneration.from_pretrained(
             self.model_name,
@@ -90,7 +91,6 @@ class LlavaOneVision7BLLM(BaseLLM):
                     continue
 
                 source = part.get("source", {})
-
                 if isinstance(source, dict):
                     if "url" in source:
                         images.append(load_image(source["url"]))
@@ -107,12 +107,25 @@ class LlavaOneVision7BLLM(BaseLLM):
             tokenize=False,
         )
 
+        # Truncate the prompt text BEFORE the processor builds final tensors
+        if hasattr(self.processor, "tokenizer"):
+            tokenized_prompt = self.processor.tokenizer(
+                prompt,
+                truncation=True,
+                max_length=2048,
+                return_tensors="pt",
+            )
+            prompt = self.processor.tokenizer.decode(
+                tokenized_prompt["input_ids"][0],
+                skip_special_tokens=False,
+            )
+
         inputs = self.processor(
             text=prompt,
             images=images if images else None,
             return_tensors="pt",
             truncation=True,
-            max_length=4096,
+            max_length=2048,
         )
 
         inputs = {
@@ -134,6 +147,7 @@ class LlavaOneVision7BLLM(BaseLLM):
                 max_new_tokens=max_new_tokens,
                 temperature=temperature,
                 do_sample=do_sample,
+                pad_token_id=self.processor.tokenizer.eos_token_id if hasattr(self.processor, "tokenizer") else None,
             )
 
         generated_tokens = outputs[:, input_len:]
