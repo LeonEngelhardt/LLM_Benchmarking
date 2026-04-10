@@ -11,18 +11,24 @@ class Llama4MultimodalLLM(BaseLLM):
         self.loaded = False
 
     def load(self):
+        print("torch version:", torch.__version__)
+        print("torch cuda runtime:", torch.version.cuda)
+        print("cuda available:", torch.cuda.is_available())
+        print("cuda device count:", torch.cuda.device_count())
+        print("requested device:", self.device)
+
         if not (torch.cuda.is_available() and self.device.startswith("cuda")):
             raise RuntimeError(
                 "CUDA is not available for Llama-4 on this job; refusing CPU fallback to avoid OOM."
             )
 
-        print("torch version:", torch.__version__)
-        print("cuda available:", torch.cuda.is_available())
-        print("cuda device count:", torch.cuda.device_count())
-        if torch.cuda.is_available():
-            print("device 0:", torch.cuda.get_device_name(0))
+        print("device 0:", torch.cuda.get_device_name(0))
 
         self.processor = AutoProcessor.from_pretrained(self.model_name)
+
+        if hasattr(self.processor, "tokenizer"):
+            self.processor.tokenizer.model_max_length = 2048
+            print("forced tokenizer max length:", self.processor.tokenizer.model_max_length)
 
         self.model = Llama4ForConditionalGeneration.from_pretrained(
             self.model_name,
@@ -64,7 +70,7 @@ class Llama4MultimodalLLM(BaseLLM):
             for part in blocks:
                 if isinstance(part, dict) and part.get("type") == "image":
                     source = part.get("source", {})
-                    if "path" in source:
+                    if isinstance(source, dict) and "path" in source:
                         images.append(Image.open(source["path"]).convert("RGB"))
 
         content = []
@@ -93,7 +99,7 @@ class Llama4MultimodalLLM(BaseLLM):
             messages.append(
                 {
                     "role": "system",
-                    "content": [{"type": "text", "text": system_instruction}],
+                    "content": [{"type": "text", "text": str(system_instruction)}],
                 }
             )
 
@@ -110,10 +116,24 @@ class Llama4MultimodalLLM(BaseLLM):
             tokenize=False,
         )
 
+        if hasattr(self.processor, "tokenizer"):
+            tokenized_prompt = self.processor.tokenizer(
+                prompt,
+                truncation=True,
+                max_length=2048,
+                return_tensors="pt",
+            )
+            prompt = self.processor.tokenizer.decode(
+                tokenized_prompt["input_ids"][0],
+                skip_special_tokens=False,
+            )
+
         inputs = self.processor(
             text=prompt,
             images=images if images else None,
             return_tensors="pt",
+            truncation=True,
+            max_length=2048,
         )
 
         first_device = next(self.model.parameters()).device
@@ -127,6 +147,8 @@ class Llama4MultimodalLLM(BaseLLM):
         }
 
         input_len = inputs["input_ids"].shape[-1]
+        print("tokenizer max length:", getattr(self.processor.tokenizer, "model_max_length", "unknown"))
+        print("actual input length:", input_len)
 
         with torch.inference_mode():
             outputs = self.model.generate(
