@@ -25,8 +25,7 @@ class MistralLLM(BaseLLM):
             trust_remote_code=True
         )
 
-        if getattr(self.tokenizer, "model_max_length", None) is None or self.tokenizer.model_max_length > 100000:
-            self.tokenizer.model_max_length = 2048
+        self.tokenizer.model_max_length = 2048
 
         self.model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
@@ -57,7 +56,7 @@ class MistralLLM(BaseLLM):
             blocks = prompt_parts
 
         if isinstance(blocks, list):
-            text_blocks = [p["text"] for p in blocks if p["type"] == "text"]
+            text_blocks = [p["text"] for p in blocks if isinstance(p, dict) and p.get("type") == "text"]
             user_content = "\n\n".join(text_blocks)
         else:
             user_content = str(blocks)
