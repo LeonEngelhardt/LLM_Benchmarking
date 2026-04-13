@@ -26,7 +26,7 @@ def main():
     parser.add_argument(
         "--experiment",
         type=str,
-        choices=["one-shot", "two-shot", "lfe", "all"],
+        choices=["zero_shot", "zero-shot", "one-shot", "two-shot", "lfe", "all"],
         default="all",
         help="Which experiment to run"
     )
@@ -210,6 +210,16 @@ def main():
                 vision=vision_enabled,
                 prompt_rewriter_llm=prompt_rewriter_llm #active_prompt_rewriter
             )
+
+            # Zero-Shot
+            if args.experiment in ["zero_shot", "zero-shot", "all"]:
+                print(f"--- {model_name} | Zero-Shot ---")
+                zero_shot_path = f"results/{model_name.replace('/', '_')}_zero_shot.csv"
+                zero_shot_df = runner.run_zero_shot(output_path=zero_shot_path)
+                save_csv(
+                    zero_shot_df,
+                    zero_shot_path
+                )
 
             # One-Shot
             if args.experiment in ["one-shot", "all"]:
