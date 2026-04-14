@@ -56,8 +56,8 @@ def main():
     # Setup
     load_dotenv()
 
-    # 1. Find all CSV files inside the data folder
-    all_files = glob.glob("data/*.csv")
+    # 1. Load the merged benchmark dataset
+    all_files = ["data/dataset_merged.csv"]
 
     # 2. Loop through them, load them, and add them to a list
     df_list = []
