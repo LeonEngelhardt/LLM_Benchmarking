@@ -57,12 +57,7 @@ def main():
 
     load_dotenv()
 
-<<<<<<< HEAD
     all_files = glob.glob("data/*.csv")
-=======
-    # 1. Load the merged benchmark dataset
-    all_files = ["data/dataset_merged.csv"]
->>>>>>> origin/main
 
     df_list = []
     for file in all_files:
@@ -199,20 +194,6 @@ def main():
                 prompt_rewriter_llm=prompt_rewriter_llm,
             )
 
-<<<<<<< HEAD
-=======
-            # Zero-Shot
-            if args.experiment in ["zero_shot", "zero-shot", "all"]:
-                print(f"--- {model_name} | Zero-Shot ---")
-                zero_shot_path = f"results/{model_name.replace('/', '_')}_zero_shot.csv"
-                zero_shot_df = runner.run_zero_shot(output_path=zero_shot_path)
-                save_csv(
-                    zero_shot_df,
-                    zero_shot_path
-                )
-
-            # One-Shot
->>>>>>> origin/main
             if args.experiment in ["one-shot", "all"]:
                 print(f"--- {model_name} | One-Shot ---")
                 one_shot_path = f"results/{model_name.replace('/', '_')}_one_shot.csv"
