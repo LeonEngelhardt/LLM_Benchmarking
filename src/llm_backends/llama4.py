@@ -32,9 +32,11 @@ class Llama4MultimodalLLM(BaseLLM):
 
         self.model = Llama4ForConditionalGeneration.from_pretrained(
             self.model_name,
-            device_map="auto",
+            device_map=None,
             dtype=torch.bfloat16,
+            low_cpu_mem_usage=True,
         )
+        self.model = self.model.to(self.device)
 
         self.model.eval()
         self.loaded = True
