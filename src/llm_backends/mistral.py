@@ -2,7 +2,7 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from .base import BaseLLM
 
-#test
+
 class MistralLLM(BaseLLM):
     def __init__(self, model_name, device="cuda" if torch.cuda.is_available() else "cpu"):
         super().__init__(model_name, vision=False)
@@ -22,10 +22,9 @@ class MistralLLM(BaseLLM):
 
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.model_name,
-            trust_remote_code=True
+            trust_remote_code=True,
+            model_max_length=2048        # ← fix: set here at load time
         )
-
-        self.tokenizer.model_max_length = 2048
 
         self.model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
