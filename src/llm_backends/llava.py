@@ -105,25 +105,10 @@ class LlavaOneVision7BLLM(BaseLLM):
             tokenize=False,
         )
 
-        # Truncate the prompt text BEFORE the processor builds final tensors
-        if hasattr(self.processor, "tokenizer"):
-            tokenized_prompt = self.processor.tokenizer(
-                prompt,
-                truncation=True,
-                max_length=2048,
-                return_tensors="pt",
-            )
-            prompt = self.processor.tokenizer.decode(
-                tokenized_prompt["input_ids"][0],
-                skip_special_tokens=False,
-            )
-
         inputs = self.processor(
             text=prompt,
             images=images if images else None,
             return_tensors="pt",
-            truncation=True,
-            max_length=2048,
         )
 
         # Move inputs to the correct device
