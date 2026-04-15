@@ -7,7 +7,7 @@ from transformers import AutoTokenizer
 
 class BenchmarkRunner:
     def __init__(self, df: pd.DataFrame, llm, evaluator=strict_match, closeness_evaluator=None, vision=False, prompt_rewriter_llm=None):
-        self.df = df
+        self.df = df.copy()
         self.llm = llm
         self.evaluator = evaluator
         self.closeness_evaluator = closeness_evaluator
@@ -15,25 +15,57 @@ class BenchmarkRunner:
         self.prompt_rewriter_llm = prompt_rewriter_llm
         self.tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
 
-        self.df_examples = df[df['is_added'].fillna(False) == True].reset_index(drop=True)
-        self.df_originals = df[df['is_added'].fillna(False) == False].reset_index(drop=True)
+        is_added = self.df['is_added'].apply(self._normalize_is_added)
+
+        self.df_examples = self.df[is_added == True].reset_index(drop=True)
+        self.df_originals = self.df[is_added == False].reset_index(drop=True)
 
         if vision:
             # VLMs receive both text-only and image questions
             self.df_targets = self.df_originals.copy().reset_index(drop=True)
         else:
             # Text-only models only receive questions without images
-            self.df_targets = self.df_originals[self.df_originals['image_path'].isna() | (self.df_originals['image_path'].str.strip() == "")].reset_index(drop=True)
+            image_path = self.df_originals.get(
+                "image_path",
+                pd.Series("", index=self.df_originals.index)
+            ).fillna("").astype(str).str.strip()
+            self.df_targets = self.df_originals[image_path == ""].reset_index(drop=True)
 
         # Special test case for BLIP only --> local testing
         if self.llm.__class__.__name__ == "BlipLLM":
-            self.df_targets = self.df_originals[self.df_originals['image_path'].notna() & (self.df_originals['image_path'].str.strip() != "")].reset_index(drop=True)
-            self.df_examples = self.df_examples[self.df_examples['image_path'].notna() & (self.df_examples['image_path'].str.strip() != "")].reset_index(drop=True)
-            self.df_originals = self.df_originals[self.df_originals['image_path'].notna() & (self.df_originals['image_path'].str.strip() != "")].reset_index(drop=True)
+            original_image_path = self.df_originals.get(
+                "image_path",
+                pd.Series("", index=self.df_originals.index)
+            ).fillna("").astype(str).str.strip()
+            example_image_path = self.df_examples.get(
+                "image_path",
+                pd.Series("", index=self.df_examples.index)
+            ).fillna("").astype(str).str.strip()
 
-        #print("EXAMPLES: ", self.df_examples)
-        #print("ORIGINALS: ", self.df_originals)
-        #print("TARGETS: ", self.df_targets)
+            self.df_targets = self.df_originals[original_image_path != ""].reset_index(drop=True)
+            self.df_examples = self.df_examples[example_image_path != ""].reset_index(drop=True)
+            self.df_originals = self.df_originals[original_image_path != ""].reset_index(drop=True)
+
+    @staticmethod
+    def _normalize_is_added(value):
+        if pd.isna(value):
+            return None
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, (int, float)):
+            if value == 1:
+                return True
+            if value == 0:
+                return False
+            return None
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in {"true"}:
+                return True
+            if normalized in {"false"}:
+                return False
+            return None
+        return None
     
     def _extract_final_answer(self, text: str) -> str:
         separator = "Answer:"
@@ -57,12 +89,6 @@ class BenchmarkRunner:
             return normalize_image_path(img)
         return None
 
-    #def _get_example_rows(self, target_row, n=None):
-    #    example_rows = self.df_examples[self.df_examples['id_original_question'] == target_row['id']] \
-    #        .sort_values('example_number').to_dict('records')
-    #    if n is not None:
-    #        return example_rows[:n]
-    #    return example_rows
     def _get_example_rows(self, target_row, n=None):
         df_filtered = self.df_examples[self.df_examples['id_original_question'] == target_row['id']].copy()
         df_filtered['example_number'] = pd.to_numeric(df_filtered['example_number'], errors='coerce')
@@ -72,6 +98,53 @@ class BenchmarkRunner:
         if n is not None:
             return example_rows[:n]
         return example_rows
+
+    def run_zero_shot(self, output_path=None):
+        results = []
+
+        for _, row in tqdm(
+            self.df_targets.iterrows(),
+            total=len(self.df_targets),
+            desc="Zero-Shot"
+        ):
+            prompt_parts = build_prompt_parts(row, [], mode="zero_shot")
+
+            prompt_parts = self.check_token_length(prompt_parts)
+
+            image_paths = []
+
+            if self.vision:
+                target_img = self._get_image_path(row)
+                if target_img:
+                    image_paths.append(target_img)
+
+            try:
+                raw_answer = self.llm.generate(prompt_parts, image_paths=image_paths if self.vision else None)
+            except Exception as exc:
+                raw_answer = f"[ERROR] {type(exc).__name__}: {exc}"
+
+            if not raw_answer:
+                raw_answer = "[No answer]"
+
+            clean_answer = self._extract_final_answer(raw_answer)
+            is_correct, closeness = self._evaluate_answer(
+                clean_answer,
+                row["answer"]
+            )
+
+            results.append({
+                "mode": "zero_shot",
+                "question": row["question"],
+                "ground_truth": row["answer"],
+                "llm_raw_output": raw_answer,
+                "llm_answer": clean_answer,
+                "is_correct": is_correct,
+                "closeness_score": closeness
+            })
+            if output_path:
+                save_csv(pd.DataFrame(results), output_path)
+
+        return pd.DataFrame(results)
 
     def run_one_shot(self, output_path=None):
         results = []
@@ -102,7 +175,6 @@ class BenchmarkRunner:
 
                 try:
                     raw_answer = self.llm.generate(prompt_parts, image_paths=image_paths if self.vision else None)
-                    #raw_answer = self.llm.generate(prompt_parts)
                 except Exception as exc:
                     raw_answer = f"[ERROR] {type(exc).__name__}: {exc}"
 
@@ -158,7 +230,6 @@ class BenchmarkRunner:
 
             try:
                 raw_answer = self.llm.generate(prompt_parts, image_paths=image_paths if self.vision else None)
-                #raw_answer = self.llm.generate(prompt_parts)
             except Exception as exc:
                 raw_answer = f"[ERROR] {type(exc).__name__}: {exc}"
 

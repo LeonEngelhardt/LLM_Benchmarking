@@ -2,9 +2,10 @@
 
 This repository acts as a framework to benchmark LLMs with the following three experiments:
 
-1. One-Shot In-Context Learning  
-2. Two-Shot In-Context Learning  
-3. Learning from Experience  
+1. Zero-Shot In-Context Learning  
+2. One-Shot In-Context Learning  
+3. Two-Shot In-Context Learning  
+4. Learning from Experience  
 
 The evaluation includes the following criterias:
 
@@ -48,8 +49,11 @@ pip install -e .
 ## Run all experiments (all models):
 python -m src.main
 
+## Only Zero-Shot (one model):
+python -m src.main --model gpt2 --experiment zero-shot
+
 ## Only One-Shot (one model):
-python -m src.main --model gpt2 -experiment one-shot
+python -m src.main --model gpt2 --experiment one-shot
 
 ## Only Two-Shot(one model):
 python -m src.main --model gpt2 --experiment two-shot
