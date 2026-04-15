@@ -27,7 +27,7 @@ def main():
     parser.add_argument(
         "--experiment",
         type=str,
-        choices=["one-shot", "two-shot", "lfe", "all"],
+        choices=["zero_shot", "zero-shot", "one-shot", "two-shot", "lfe", "all"],
         default="all",
         help="Which experiment to run"
     )
@@ -58,8 +58,8 @@ def main():
     load_dotenv()
     os.makedirs("results", exist_ok=True)
 
-    # 1. Find all CSV files inside the data folder
-    all_files = glob.glob("data/*.csv")
+    # 1. Load the merged benchmark dataset
+    all_files = ["data/dataset_merged.csv"]
 
     # 2. Loop through them, load them, and add them to a list
     df_list = []
@@ -257,6 +257,16 @@ def main():
                 vision=vision_enabled,
                 prompt_rewriter_llm=prompt_rewriter_llm #active_prompt_rewriter
             )
+
+            # Zero-Shot
+            if args.experiment in ["zero_shot", "zero-shot", "all"]:
+                print(f"--- {model_name} | Zero-Shot ---")
+                zero_shot_path = f"results/{model_name.replace('/', '_')}_zero_shot.csv"
+                zero_shot_df = runner.run_zero_shot(output_path=zero_shot_path)
+                save_csv(
+                    zero_shot_df,
+                    zero_shot_path
+                )
 
             # One-Shot
             if args.experiment in ["one-shot", "all"]:
