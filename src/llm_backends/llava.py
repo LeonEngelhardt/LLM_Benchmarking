@@ -33,8 +33,11 @@ class LlavaOneVision7BLLM(BaseLLM):
         self.model = LlavaOnevisionForConditionalGeneration.from_pretrained(
             self.model_name,
             dtype=torch.bfloat16 if use_cuda else torch.float32,
+            device_map="auto" if use_cuda else None,
             low_cpu_mem_usage=True,
-        ).to(target_device)
+        )
+        if not use_cuda:
+            self.model = self.model.to(target_device)
 
         self.model.eval()
         self.loaded = True
@@ -128,14 +131,19 @@ class LlavaOneVision7BLLM(BaseLLM):
             max_length=2048,
         )
 
-        inputs = {
-            k: (
-                v.to(target_device, dtype=torch.bfloat16)
-                if use_cuda and torch.is_tensor(v) and torch.is_floating_point(v)
-                else v.to(target_device)
-            )
-            for k, v in inputs.items()
-        }
+        # Move inputs to the correct device
+        if use_cuda:
+            first_device = next(self.model.parameters()).device
+            inputs = {
+                k: (
+                    v.to(first_device, dtype=torch.bfloat16)
+                    if torch.is_tensor(v) and torch.is_floating_point(v)
+                    else v.to(first_device)
+                )
+                for k, v in inputs.items()
+            }
+        else:
+            inputs = {k: v.to(target_device) for k, v in inputs.items()}
 
         input_len = inputs["input_ids"].shape[-1]
         print("tokenizer max length:", getattr(self.processor.tokenizer, "model_max_length", "unknown"))
