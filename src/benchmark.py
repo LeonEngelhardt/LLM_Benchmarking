@@ -379,9 +379,7 @@ class BenchmarkRunner:
             return prompt_parts
 
         prompt_text = instruction + "\n\n"
-        prompt_text += "\n\n".join(
-            [part["text"] for part in blocks if part["type"] == "text"]
-        )
+        prompt_text += "\n\n".join(self._collect_text_blocks(blocks))
 
         tokens = self.tokenizer.encode(prompt_text)
 
@@ -398,9 +396,7 @@ class BenchmarkRunner:
     def shorten_prompt_with_qwen3(self, instruction, blocks):
 
         full_text = instruction + "\n\n"
-        full_text += "\n\n".join(
-            [part["text"] for part in blocks if part["type"] == "text"]
-        )
+        full_text += "\n\n".join(self._collect_text_blocks(blocks))
 
         rewrite_instruction = (
             "You are an expert prompt compressor.\n"
@@ -424,6 +420,24 @@ class BenchmarkRunner:
             "type": "text",
             "text": shortened
         }])
+
+    @staticmethod
+    def _collect_text_blocks(blocks):
+        if isinstance(blocks, str):
+            return [blocks]
+
+        if not isinstance(blocks, list):
+            return [str(blocks)]
+
+        text_blocks = []
+        for part in blocks:
+            if isinstance(part, dict):
+                if part.get("type") == "text":
+                    text_blocks.append(str(part.get("text", "")))
+            else:
+                text_blocks.append(str(part))
+
+        return text_blocks
 
 
 

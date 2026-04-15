@@ -56,26 +56,21 @@ class LlavaOneVision7BLLM(BaseLLM):
             blocks = prompt_parts
             system_instruction = None
 
+        blocks = self._normalize_blocks(blocks)
+
         content = []
         images = []
 
         if system_instruction:
             content.append({"type": "text", "text": str(system_instruction)})
 
-        if isinstance(blocks, list):
-            for part in blocks:
-                if not isinstance(part, dict):
-                    content.append({"type": "text", "text": str(part)})
-                    continue
+        for part in blocks:
+            part_type = part.get("type")
 
-                part_type = part.get("type")
-
-                if part_type == "text":
-                    content.append({"type": "text", "text": str(part.get("text", ""))})
-                elif part_type == "image":
-                    content.append({"type": "image"})
-        else:
-            content.append({"type": "text", "text": str(blocks)})
+            if part_type == "text":
+                content.append({"type": "text", "text": str(part.get("text", ""))})
+            elif part_type == "image":
+                content.append({"type": "image"})
 
         if image_paths:
             if not isinstance(image_paths, list):
@@ -88,9 +83,9 @@ class LlavaOneVision7BLLM(BaseLLM):
                 item for item in content if item.get("type") == "text"
             ]
 
-        elif isinstance(blocks, list):
+        else:
             for part in blocks:
-                if not isinstance(part, dict) or part.get("type") != "image":
+                if part.get("type") != "image":
                     continue
 
                 source = part.get("source", {})
@@ -169,3 +164,21 @@ class LlavaOneVision7BLLM(BaseLLM):
             return decoded.split("Answer:")[-1].strip()
 
         return decoded
+
+    def _normalize_blocks(self, blocks):
+        if isinstance(blocks, list):
+            normalized = []
+            for part in blocks:
+                if isinstance(part, dict):
+                    normalized.append(part)
+                else:
+                    normalized.append({"type": "text", "text": str(part)})
+            return normalized
+
+        if isinstance(blocks, tuple):
+            return [{"type": "text", "text": str(blocks)}]
+
+        if isinstance(blocks, str):
+            return [{"type": "text", "text": blocks}]
+
+        return [{"type": "text", "text": str(blocks)}]
