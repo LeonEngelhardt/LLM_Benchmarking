@@ -2,7 +2,6 @@ import os
 import torch
 import argparse
 import glob
-from contextlib import nullcontext
 import pandas as pd
 from dotenv import load_dotenv
 from src.utils import load_csv, save_csv
@@ -17,7 +16,7 @@ from src.llm_backends.factory import get_llm
 
 
 def get_active_venv():
-    venv_name = os.path.basename(os.getenv("VIRTUAL_ENV", ""))
+    venv_name = os.path.basename(os.getenv('VIRTUAL_ENV', ''))
     return venv_name
 
 
@@ -27,7 +26,7 @@ def main():
     parser.add_argument(
         "--experiment",
         type=str,
-        choices=["one-shot", "two-shot", "lfe", "all"],
+        choices=["zero_shot", "zero-shot", "one-shot", "two-shot", "lfe", "all"],
         default="all",
         help="Which experiment to run"
     )
@@ -54,25 +53,35 @@ def main():
 
     args = parser.parse_args()
 
+    # Setup
     load_dotenv()
 
-    all_files = glob.glob("data/*.csv")
+    # 1. Load the merged benchmark dataset
+    all_files = ["data/dataset_merged.csv"]
 
+    # 2. Loop through them, load them, and add them to a list
     df_list = []
     for file in all_files:
+        #if "Najib" in file:
+        #    continue
         print(f"Loading: {file}")
-        df = load_csv(file)
+        df = load_csv(file)  # Using your existing load_csv function
         df_list.append(df)
 
+    # 3. Combine all the individual datasets into one massive dataframe
     if df_list:
         df_all = pd.concat(df_list, ignore_index=True)
         print(f"Successfully combined {len(all_files)} files!")
     else:
+        # We use a print here instead of raise to keep the script running if you want to debug
         print("[ERROR] No CSV files found in data/ directory!")
-        return
-
+        return 
+    
     df_all = df_all.fillna("")
 
+    # Closeness Evaluator
+    # Use Qwen as judge IF API key exists, otherwise fallback
+    # Closeness Evaluator + Prompt Rewriter (Shared Model)
     gpu_available = torch.cuda.is_available()
 
     closeness_eval = None
@@ -82,6 +91,8 @@ def main():
 
     if gpu_available and venv_name != "venv_only_deepseek_vl2":
         print("[INFO] Loading Qwen3 once (Judge + Prompt Rewriter)")
+        
+        from src.llm_backends.qwen3 import Qwen3VLLLM
 
         qwen_shared = get_llm(
             model_name="Qwen/Qwen3-4B-Instruct-2507",
@@ -107,42 +118,40 @@ def main():
         print(f"[INFO] Wrote result file with refreshed closeness scores to: {output_file}")
         return
 
+
+    # Models to benchmark
     if venv_name == "venv_only_deepseek_vl2":
+        models_to_test = [ {"name": "deepseek-ai/deepseek-vl2", "vision": True}, ]
+    elif venv_name == "venv_all_other_models":
         models_to_test = [
-            {"name": "deepseek-ai/deepseek-vl2", "vision": True},
-        ]
-    elif venv_name in ["venv_all_other_models", "venv_all_other_models_py311"]:
-        models_to_test = [
-            {"name": "gpt2", "vision": False},
-            {"name": "mistralai/Mistral-7B-Instruct-v0.3", "vision": False},
-            {"name": "deepseek-v3.2", "vision": False},
+            {"name": "gpt2", "vision": False},                                    # local HF --> only for testing
+            {"name": "mistralai/Mistral-7B-Instruct-v0.3", "vision": False},      # HF   
+            {"name": "deepseek-v3.2", "vision": False},                           # Deepseek API
             {"name": "DeepSeek-V3.1", "vision": False},
             {"name": "DeepSeek-V3", "vision": False},
-            {"name": "DeepSeek-V2", "vision": False},
-            {"name": "Salesforce/blip-image-captioning-base", "vision": True},
-            {"name": "llava-hf/llava-onevision-qwen2-7b-ov-hf", "vision": True},
-            {"name": "internlm/Intern-S1-mini", "vision": True},
-            {"name": "claude-opus-4-6", "vision": True},
-            {"name": "claude-3-opus-latest", "vision": True},
-            {"name": "gpt-5.2", "vision": True},
-            {"name": "gpt-4.1", "vision": True},
-            {"name": "gpt-3.5-turbo", "vision": False},
-            {"name": "Qwen/Qwen3-VL-235B-A22B-Instruct", "vision": True},
-            {"name": "Qwen/Qwen2.5-VL-32B-Instruct", "vision": True},
-            {"name": "Qwen/Qwen2-VL-2B-Instruct", "vision": True},
-            {"name": "meta-llama/Llama-4-Scout-17B-16E-Instruct", "vision": True},
-            {"name": "meta-llama/Llama-3.3-70B-Instruct", "vision": False},
-            {"name": "meta-llama/Llama-3.1-70B-Instruct", "vision": False},
-            {"name": "meta-llama/Meta-Llama-3-70B-Instruct", "vision": False},
-            {"name": "google/gemma-3-27b-it", "vision": True},
-            {"name": "google/gemma-2-9b-it", "vision": False},
-            {"name": "gemini-3-pro-preview", "vision": True},
-            {"name": "gemini-2.5-pro", "vision": True},
+            {"name": "DeepSeek-V2", "vision": False},  
+            {"name": "Salesforce/blip-image-captioning-base", "vision": True},    # local HF --> only for testing        
+            {"name": "llava-hf/llava-onevision-qwen2-7b-ov-hf", "vision": True},   # HF
+            {"name": "internlm/Intern-S1-mini", "vision": True},                  # HF
+            {"name": "claude-opus-4-6", "vision": True},                          # Anthropic API
+            {"name": "claude-3-opus-latest", "vision": True},                     # Anthropic API
+            {"name": "gpt-5.2", "vision": True},                                  # OpenAI
+            {"name": "gpt-4.1", "vision": True},                                  # OpenAI 
+            {"name": "gpt-3.5-turbo", "vision": False},                           # OpenAI 
+            {"name": "Qwen/Qwen3-VL-235B-A22B-Instruct", "vision": True},         # HF
+            {"name": "Qwen/Qwen2.5-VL-32B-Instruct", "vision": True},             # HF
+            {"name": "Qwen/Qwen2-VL-2B-Instruct", "vision": True},                # HF
+            {"name": "meta-llama/Llama-4-Scout-17B-16E-Instruct", "vision": True},# HF local / HF inference
+            {"name": "meta-llama/Llama-3.3-70B-Instruct", "vision": False},  
+            {"name": "meta-llama/Llama-3.1-70B-Instruct", "vision": False},  
+            {"name": "meta-llama/Meta-Llama-3-70B-Instruct", "vision": False},  
+            {"name": "google/gemma-3-27b-it", "vision": True},                    # HF
+            {"name": "google/gemma-2-9b-it", "vision": False},                    # HF
+            {"name": "gemini-3-pro-preview", "vision": True},                     # Gemini API
+            {"name": "gemini-2.5-pro", "vision": True},                           # Gemini API
         ]
-    else:
-        print(f"[WARNING] Unknown virtual environment '{venv_name}'.")
-        return
 
+    # only add models that where explicitly given via args
     if args.model:
         models_to_test = [m for m in models_to_test if m["name"] == args.model]
         if not models_to_test:
@@ -151,16 +160,21 @@ def main():
     else:
         print("[INFO] No model specified via arguments, so all models of the current venv will be run!")
 
+
+    # Benchmarking loop
     for model_info in models_to_test:
         model_name = model_info["name"]
         vision_enabled = model_info["vision"]
 
         print(f"\n=== Benchmarking {model_name} (Vision={vision_enabled}) ===")
-
+        
+        # Filter dataset
         if vision_enabled:
+            # Vision models receive all questions
             df = df_all.reset_index(drop=True)
             print(f"[INFO] Vision model -> {len(df)} total questions (text + image)")
         else:
+            # Text models receive only text questions (questions with images are filtered out)
             df = df_all[
                 df_all["image_path"].isna()
                 | (df_all["image_path"].str.strip() == "")
@@ -171,18 +185,22 @@ def main():
             print("[WARNING] No suitable questions found -> skipping model")
             continue
 
-        autocast_context = (
-            torch.autocast(device_type="cuda", dtype=torch.bfloat16)
-            if gpu_available else
-            nullcontext()
-        )
+        
 
-        with autocast_context:
+        with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+            #with torch.inference_mode(): --> Problematic for deepseek_vl2, as it sometimes explicitely needs and wants no_grad instead of inference_mode!
+
+            # Load model via factory
             llm = get_llm(
                 model_name=model_name,
                 vision=vision_enabled,
             )
             llm.load()
+
+
+            #active_prompt_rewriter = None
+            #if not vision_enabled:
+            #    active_prompt_rewriter = prompt_rewriter_llm
 
             runner = BenchmarkRunner(
                 df=df,
@@ -190,26 +208,48 @@ def main():
                 evaluator=strict_match,
                 closeness_evaluator=closeness_eval,
                 vision=vision_enabled,
-                prompt_rewriter_llm=prompt_rewriter_llm
+                prompt_rewriter_llm=prompt_rewriter_llm #active_prompt_rewriter
             )
 
+            # Zero-Shot
+            if args.experiment in ["zero_shot", "zero-shot", "all"]:
+                print(f"--- {model_name} | Zero-Shot ---")
+                zero_shot_path = f"results/{model_name.replace('/', '_')}_zero_shot.csv"
+                zero_shot_df = runner.run_zero_shot(output_path=zero_shot_path)
+                save_csv(
+                    zero_shot_df,
+                    zero_shot_path
+                )
+
+            # One-Shot
             if args.experiment in ["one-shot", "all"]:
                 print(f"--- {model_name} | One-Shot ---")
                 one_shot_path = f"results/{model_name.replace('/', '_')}_one_shot.csv"
                 one_shot_df = runner.run_one_shot(output_path=one_shot_path)
-                save_csv(one_shot_df, one_shot_path)
+                save_csv(
+                    one_shot_df,
+                    one_shot_path
+                )
 
+            # Two-Shot
             if args.experiment in ["two-shot", "all"]:
                 print(f"--- {model_name} | Two-Shot ---")
                 two_shot_path = f"results/{model_name.replace('/', '_')}_two_shot.csv"
                 two_shot_df = runner.run_two_shot(output_path=two_shot_path)
-                save_csv(two_shot_df, two_shot_path)
+                save_csv(
+                    two_shot_df,
+                    two_shot_path
+                )
 
+            # Learning-from-Experience
             if args.experiment in ["lfe", "all"]:
                 print(f"--- {model_name} | Learning-from-Experience ---")
                 lfe_path = f"results/{model_name.replace('/', '_')}_lfe.csv"
                 lfe_df = runner.run_learning_from_experience(output_path=lfe_path)
-                save_csv(lfe_df, lfe_path)
+                save_csv(
+                    lfe_df,
+                    lfe_path
+                )
 
 
 if __name__ == "__main__":
