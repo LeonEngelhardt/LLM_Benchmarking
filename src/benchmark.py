@@ -379,32 +379,32 @@ class BenchmarkRunner:
             return prompt_parts
 
         prompt_text = instruction + "\n\n"
-        prompt_text += "\n\n".join(
-            [part["text"] for part in blocks if part["type"] == "text"]
-        )
+        prompt_text += "\n\n".join(self._collect_text_blocks(blocks))
 
         tokens = self.tokenizer.encode(prompt_text)
+        token_limit = 1800 if self.vision else 4096
 
         print("NUMBER OF TOKENS: ", len(tokens))
 
-        if len(tokens) > 4096 and self.prompt_rewriter_llm:
-            print(f"[INFO] Prompt too long ({len(tokens)} tokens). Using Qwen3 to shorten.")
-            return self.shorten_prompt_with_qwen3(instruction, blocks)
+        if len(tokens) > token_limit and self.prompt_rewriter_llm:
+            print(
+                f"[INFO] Prompt too long ({len(tokens)} tokens, limit={token_limit}). "
+                "Using Qwen3 to shorten."
+            )
+            return self.shorten_prompt_with_qwen3(instruction, blocks, target_limit=token_limit)
 
         return prompt_parts
 
     
 
-    def shorten_prompt_with_qwen3(self, instruction, blocks):
+    def shorten_prompt_with_qwen3(self, instruction, blocks, target_limit=4096):
 
         full_text = instruction + "\n\n"
-        full_text += "\n\n".join(
-            [part["text"] for part in blocks if part["type"] == "text"]
-        )
+        full_text += "\n\n".join(self._collect_text_blocks(blocks))
 
         rewrite_instruction = (
             "You are an expert prompt compressor.\n"
-            "Shorten the following prompt so it fits within 4096 tokens.\n"
+            f"Shorten the following prompt so it fits within about {target_limit} tokens.\n"
             "Preserve structure and the final question.\n"
             "Do not add explanations.\n"
             "Return ONLY the shortened prompt."
@@ -424,6 +424,24 @@ class BenchmarkRunner:
             "type": "text",
             "text": shortened
         }])
+
+    @staticmethod
+    def _collect_text_blocks(blocks):
+        if isinstance(blocks, str):
+            return [blocks]
+
+        if not isinstance(blocks, list):
+            return [str(blocks)]
+
+        text_blocks = []
+        for part in blocks:
+            if isinstance(part, dict):
+                if part.get("type") == "text":
+                    text_blocks.append(str(part.get("text", "")))
+            else:
+                text_blocks.append(str(part))
+
+        return text_blocks
 
 
 

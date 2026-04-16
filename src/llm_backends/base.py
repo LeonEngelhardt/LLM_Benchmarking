@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 
 class BaseLLM(ABC):
     def __init__(self, model_name: str, vision: bool = False):
@@ -11,5 +12,5 @@ class BaseLLM(ABC):
         pass
 
     @abstractmethod
-    def generate(self, prompt: str, image_path: str | None = None) -> str:
+    def generate(self, prompt: str, image_path: Optional[str] = None) -> str:
         pass

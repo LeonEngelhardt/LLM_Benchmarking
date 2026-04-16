@@ -1,7 +1,7 @@
 import torch
-from PIL import Image
 from transformers import AutoProcessor, LlavaOnevisionForConditionalGeneration
 from .base import BaseLLM
+from src.utils import load_image
 
 
 class LlavaOneVision7BLLM(BaseLLM):
@@ -11,13 +11,33 @@ class LlavaOneVision7BLLM(BaseLLM):
         self.loaded = False
 
     def load(self):
-        self.processor = AutoProcessor.from_pretrained(self.model_name)
+        use_cuda = torch.cuda.is_available() and self.device.startswith("cuda")
+        target_device = "cuda" if use_cuda else "cpu"
+
+        print("torch version:", torch.__version__)
+        print("torch cuda runtime:", torch.version.cuda)
+        print("cuda available:", torch.cuda.is_available())
+        print("cuda device count:", torch.cuda.device_count())
+        if torch.cuda.is_available():
+            print("device 0:", torch.cuda.get_device_name(0))
+
+        self.processor = AutoProcessor.from_pretrained(
+            self.model_name,
+            use_fast=True,
+        )
+
+        if hasattr(self.processor, "tokenizer"):
+            self.processor.tokenizer.model_max_length = 2048
+            print("forced tokenizer max length:", self.processor.tokenizer.model_max_length)
 
         self.model = LlavaOnevisionForConditionalGeneration.from_pretrained(
             self.model_name,
-            torch_dtype=torch.bfloat16 if self.device.startswith("cuda") else torch.float32,
-            low_cpu_mem_usage=True
-        ).to(self.device)
+            dtype=torch.bfloat16 if use_cuda else torch.float32,
+            device_map="auto" if use_cuda else None,
+            low_cpu_mem_usage=True,
+        )
+        if not use_cuda:
+            self.model = self.model.to(target_device)
 
         self.model.eval()
         self.loaded = True
@@ -26,6 +46,9 @@ class LlavaOneVision7BLLM(BaseLLM):
         if not self.loaded:
             raise RuntimeError("Model not loaded. Call `load()` first.")
 
+        use_cuda = torch.cuda.is_available() and self.device.startswith("cuda")
+        target_device = "cuda" if use_cuda else "cpu"
+
         if isinstance(prompt_parts, tuple) and len(prompt_parts) == 2:
             instruction, blocks = prompt_parts
             system_instruction = instruction
@@ -33,60 +56,114 @@ class LlavaOneVision7BLLM(BaseLLM):
             blocks = prompt_parts
             system_instruction = None
 
-        if isinstance(blocks, list):
-            text_blocks = [p["text"] for p in blocks if p["type"] == "text"]
-            user_text = "\n\n".join(text_blocks)
-        else:
-            user_text = str(blocks)
+        blocks = self._normalize_blocks(blocks)
 
+        content = []
         images = []
+
+        if system_instruction:
+            content.append({"type": "text", "text": str(system_instruction)})
+
+        for part in blocks:
+            part_type = part.get("type")
+
+            if part_type == "text":
+                content.append({"type": "text", "text": str(part.get("text", ""))})
+            elif part_type == "image":
+                content.append({"type": "image"})
+
         if image_paths:
             if not isinstance(image_paths, list):
                 image_paths = [image_paths]
-            for img_path in image_paths:
-                images.append(Image.open(img_path))
+
+            loaded_images = [load_image(img_path) for img_path in image_paths if img_path]
+            images.extend(loaded_images)
+
+            content = [{"type": "image"} for _ in loaded_images] + [
+                item for item in content if item.get("type") == "text"
+            ]
+
         else:
-            if isinstance(blocks, list):
-                for part in blocks:
-                    if part["type"] == "image":
-                        if "url" in part.get("source", {}):
-                            images.append(part["source"]["url"])
-                        elif "path" in part.get("source", {}):
-                            images.append(Image.open(part["source"]["path"]))
+            for part in blocks:
+                if part.get("type") != "image":
+                    continue
 
-        content = []
-        for img in images:
-            content.append({"type": "image", "url": img} if isinstance(img, str) else {"type": "image", "image": img})
-        content.append({"type": "text", "text": user_text})
+                source = part.get("source", {})
+                if isinstance(source, dict):
+                    if "url" in source:
+                        images.append(load_image(source["url"]))
+                    elif "path" in source:
+                        images.append(load_image(source["path"]))
+                elif isinstance(source, str):
+                    images.append(load_image(source))
 
-        messages = []
-        if system_instruction:
-            messages.append({"role": "system", "content": system_instruction})
-        messages.append({"role": "user", "content": content})
+        messages = [{"role": "user", "content": content}]
 
-
-        inputs = self.processor.apply_chat_template(
+        prompt = self.processor.apply_chat_template(
             messages,
             add_generation_prompt=True,
-            tokenize=True,
-            return_dict=True,
-            return_tensors="pt"
-        ).to(self.device)
+            tokenize=False,
+        )
+
+        inputs = self.processor(
+            text=prompt,
+            images=images if images else None,
+            return_tensors="pt",
+        )
+
+        # Move inputs to the correct device
+        if use_cuda:
+            first_device = next(self.model.parameters()).device
+            inputs = {
+                k: (
+                    v.to(first_device, dtype=torch.bfloat16)
+                    if torch.is_tensor(v) and torch.is_floating_point(v)
+                    else v.to(first_device)
+                )
+                for k, v in inputs.items()
+            }
+        else:
+            inputs = {k: v.to(target_device) for k, v in inputs.items()}
+
+        input_len = inputs["input_ids"].shape[-1]
+        print("tokenizer max length:", getattr(self.processor.tokenizer, "model_max_length", "unknown"))
+        print("actual input length:", input_len)
 
         with torch.inference_mode():
             outputs = self.model.generate(
                 **inputs,
                 max_new_tokens=max_new_tokens,
                 temperature=temperature,
-                do_sample=do_sample
+                do_sample=do_sample,
+                pad_token_id=self.processor.tokenizer.eos_token_id if hasattr(self.processor, "tokenizer") else None,
             )
 
-        decoded = self.processor.decode(
-            outputs[0],
-            skip_special_tokens=True
-        ).strip()
+        generated_tokens = outputs[:, input_len:]
+
+        decoded = self.processor.batch_decode(
+            generated_tokens,
+            skip_special_tokens=True,
+        )[0].strip()
 
         if "Answer:" in decoded:
             return decoded.split("Answer:")[-1].strip()
 
         return decoded
+
+    def _normalize_blocks(self, blocks):
+        if isinstance(blocks, list):
+            normalized = []
+            for part in blocks:
+                if isinstance(part, dict):
+                    normalized.append(part)
+                else:
+                    normalized.append({"type": "text", "text": str(part)})
+            return normalized
+
+        if isinstance(blocks, tuple):
+            return [{"type": "text", "text": str(blocks)}]
+
+        if isinstance(blocks, str):
+            return [{"type": "text", "text": blocks}]
+
+        return [{"type": "text", "text": str(blocks)}]
