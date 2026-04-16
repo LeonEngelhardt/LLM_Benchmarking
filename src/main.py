@@ -2,6 +2,7 @@ import os
 import torch
 import argparse
 import glob
+from contextlib import nullcontext
 import pandas as pd
 from dotenv import load_dotenv
 from src.utils import load_csv, save_csv
@@ -55,6 +56,7 @@ def main():
 
     # Setup
     load_dotenv()
+    os.makedirs("results", exist_ok=True)
 
     # 1. Load the merged benchmark dataset
     all_files = ["data/dataset_merged.csv"]
@@ -89,21 +91,32 @@ def main():
 
     venv_name = get_active_venv()
 
-    if gpu_available and venv_name != "venv_only_deepseek_vl2":
+    # Avoid keeping a second local HF model resident on the same GPU when
+    # benchmarking a local text model such as Mistral.
+    skip_qwen_helper = args.model == "mistralai/Mistral-7B-Instruct-v0.3"
+
+    if gpu_available and venv_name != "venv_only_deepseek_vl2" and not skip_qwen_helper:
         print("[INFO] Loading Qwen3 once (Judge + Prompt Rewriter)")
-        
-        from src.llm_backends.qwen3 import Qwen3VLLLM
 
-        qwen_shared = get_llm(
-            model_name="Qwen/Qwen3-4B-Instruct-2507",
-            vision=False,
-        )
-        qwen_shared.load()
+        try:
+            qwen_shared = get_llm(
+                model_name="Qwen/Qwen3-4B-Instruct-2507",
+                vision=False,
+            )
+            qwen_shared.load()
 
-        closeness_eval = LLMClosenessEvaluator(qwen_shared)
-        prompt_rewriter_llm = qwen_shared
+            closeness_eval = LLMClosenessEvaluator(qwen_shared)
+            prompt_rewriter_llm = qwen_shared
+        except Exception as exc:
+            print(f"[WARNING] Could not load Qwen judge/rewriter: {type(exc).__name__}: {exc}")
+            print("[INFO] Falling back to string-based closeness evaluator")
+            closeness_eval = ClosenessEvaluator()
+            prompt_rewriter_llm = None
     else:
-        print("[INFO] Using string-based closeness evaluator (local fallback)")
+        if skip_qwen_helper:
+            print("[INFO] Skipping Qwen judge/rewriter for Mistral to reduce GPU memory pressure")
+        else:
+            print("[INFO] Using string-based closeness evaluator (local fallback)")
         closeness_eval = ClosenessEvaluator()
         prompt_rewriter_llm = None
 
@@ -150,6 +163,36 @@ def main():
             {"name": "gemini-3-pro-preview", "vision": True},                     # Gemini API
             {"name": "gemini-2.5-pro", "vision": True},                           # Gemini API
         ]
+    else:
+        print(f"[WARNING] Unknown virtual environment '{venv_name}'.")
+        print("[INFO] Falling back to the standard all-other-models registry.")
+        models_to_test = [
+            {"name": "gpt2", "vision": False},
+            {"name": "mistralai/Mistral-7B-Instruct-v0.3", "vision": False},
+            {"name": "deepseek-v3.2", "vision": False},
+            {"name": "DeepSeek-V3.1", "vision": False},
+            {"name": "DeepSeek-V3", "vision": False},
+            {"name": "DeepSeek-V2", "vision": False},
+            {"name": "Salesforce/blip-image-captioning-base", "vision": True},
+            {"name": "llava-hf/llava-onevision-qwen2-7b-ov-hf", "vision": True},
+            {"name": "internlm/Intern-S1-mini", "vision": True},
+            {"name": "claude-opus-4-6", "vision": True},
+            {"name": "claude-3-opus-latest", "vision": True},
+            {"name": "gpt-5.2", "vision": True},
+            {"name": "gpt-4.1", "vision": True},
+            {"name": "gpt-3.5-turbo", "vision": False},
+            {"name": "Qwen/Qwen3-VL-235B-A22B-Instruct", "vision": True},
+            {"name": "Qwen/Qwen2.5-VL-32B-Instruct", "vision": True},
+            {"name": "Qwen/Qwen2-VL-2B-Instruct", "vision": True},
+            {"name": "meta-llama/Llama-4-Scout-17B-16E-Instruct", "vision": True},
+            {"name": "meta-llama/Llama-3.3-70B-Instruct", "vision": False},
+            {"name": "meta-llama/Llama-3.1-70B-Instruct", "vision": False},
+            {"name": "meta-llama/Meta-Llama-3-70B-Instruct", "vision": False},
+            {"name": "google/gemma-3-27b-it", "vision": True},
+            {"name": "google/gemma-2-9b-it", "vision": False},
+            {"name": "gemini-3-pro-preview", "vision": True},
+            {"name": "gemini-2.5-pro", "vision": True},
+        ]
 
     # only add models that where explicitly given via args
     if args.model:
@@ -186,8 +229,12 @@ def main():
             continue
 
         
-
-        with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+        autocast_context = (
+            torch.autocast(device_type="cuda", dtype=torch.bfloat16)
+            if gpu_available else
+            nullcontext()
+        )
+        with autocast_context:
             #with torch.inference_mode(): --> Problematic for deepseek_vl2, as it sometimes explicitely needs and wants no_grad instead of inference_mode!
 
             # Load model via factory
