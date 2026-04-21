@@ -92,8 +92,12 @@ def main():
     venv_name = get_active_venv()
 
     # Avoid keeping a second local HF model resident on the same GPU when
-    # benchmarking a local text model such as Mistral.
-    skip_qwen_helper = args.model == "mistralai/Mistral-7B-Instruct-v0.3"
+    # benchmarking large local models.
+    skip_qwen_helper_models = {
+        "mistralai/Mistral-7B-Instruct-v0.3",
+        "meta-llama/Llama-4-Scout-17B-16E-Instruct",
+    }
+    skip_qwen_helper = args.model in skip_qwen_helper_models
 
     if gpu_available and venv_name != "venv_only_deepseek_vl2" and not skip_qwen_helper:
         print("[INFO] Loading Qwen3 once (Judge + Prompt Rewriter)")
@@ -114,7 +118,7 @@ def main():
             prompt_rewriter_llm = None
     else:
         if skip_qwen_helper:
-            print("[INFO] Skipping Qwen judge/rewriter for Mistral to reduce GPU memory pressure")
+            print(f"[INFO] Skipping Qwen judge/rewriter for {args.model} to reduce GPU memory pressure")
         else:
             print("[INFO] Using string-based closeness evaluator (local fallback)")
         closeness_eval = ClosenessEvaluator()
