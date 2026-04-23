@@ -30,11 +30,18 @@ class Llama4MultimodalLLM(BaseLLM):
             self.processor.tokenizer.model_max_length = 2048
             print("forced tokenizer max length:", self.processor.tokenizer.model_max_length)
 
+        max_memory = None
+        if self.device.startswith("cuda"):
+            # Prefer the GPU aggressively on large-memory nodes, but still allow
+            # Transformers to avoid hard crashes if the full model does not fit.
+            max_memory = {0: "90GiB", "cpu": "120GiB"}
+
         self.model = Llama4ForConditionalGeneration.from_pretrained(
             self.model_name,
-            device_map={"": self.device},
+            device_map="auto",
             dtype=torch.bfloat16,
             low_cpu_mem_usage=True,
+            max_memory=max_memory,
         )
 
         self.model.eval()
