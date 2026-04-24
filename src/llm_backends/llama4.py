@@ -1,3 +1,4 @@
+import os
 import torch
 from PIL import Image
 from transformers import AutoProcessor, Llama4ForConditionalGeneration
@@ -49,7 +50,7 @@ class Llama4MultimodalLLM(BaseLLM):
             dtype=torch.bfloat16,
             low_cpu_mem_usage=True,
             max_memory=max_memory,
-            offload_folder="results/llama4_offload",
+            offload_folder=os.getenv("LLAMA4_OFFLOAD_DIR", "results/llama4_offload"),
         )
 
         self.model.eval()
