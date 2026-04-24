@@ -32,9 +32,16 @@ class Llama4MultimodalLLM(BaseLLM):
 
         max_memory = None
         if self.device.startswith("cuda"):
-            # Prefer the GPU aggressively on large-memory nodes, but still allow
-            # Transformers to avoid hard crashes if the full model does not fit.
-            max_memory = {0: "90GiB", "cpu": "120GiB"}
+            gpu_count = torch.cuda.device_count()
+            max_memory = {"cpu": "160GiB"}
+            for gpu_idx in range(gpu_count):
+                total_bytes = torch.cuda.get_device_properties(gpu_idx).total_memory
+                total_gib = total_bytes / (1024 ** 3)
+                # Keep a few GiB free per GPU for activations, temporary buffers, and CUDA runtime.
+                usable_gib = max(1, int(total_gib - 4))
+                max_memory[gpu_idx] = f"{usable_gib}GiB"
+                print(f"device {gpu_idx} total memory (GiB):", round(total_gib, 2))
+                print(f"device {gpu_idx} usable memory cap (GiB):", usable_gib)
 
         self.model = Llama4ForConditionalGeneration.from_pretrained(
             self.model_name,
@@ -42,6 +49,7 @@ class Llama4MultimodalLLM(BaseLLM):
             dtype=torch.bfloat16,
             low_cpu_mem_usage=True,
             max_memory=max_memory,
+            offload_folder="results/llama4_offload",
         )
 
         self.model.eval()
