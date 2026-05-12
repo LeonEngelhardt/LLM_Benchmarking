@@ -34,7 +34,7 @@ class Llama4MultimodalLLM(BaseLLM):
         max_memory = None
         if self.device.startswith("cuda"):
             gpu_count = torch.cuda.device_count()
-            max_memory = {"cpu": "160GiB"}
+            max_memory = {}
             for gpu_idx in range(gpu_count):
                 total_bytes = torch.cuda.get_device_properties(gpu_idx).total_memory
                 total_gib = total_bytes / (1024 ** 3)
@@ -50,7 +50,6 @@ class Llama4MultimodalLLM(BaseLLM):
             dtype=torch.bfloat16,
             low_cpu_mem_usage=True,
             max_memory=max_memory,
-            offload_folder=os.getenv("LLAMA4_OFFLOAD_DIR", "results/llama4_offload"),
         )
 
         self.model.eval()
